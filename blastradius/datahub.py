@@ -6,13 +6,16 @@ either DataHub Core or DataHub Cloud.
 
 Two design decisions worth knowing about:
 
-**Argument names adapt to the server.** The DataHub MCP server validates
-arguments at runtime and advertises an *empty* ``inputSchema``, so there is
-nothing to introspect: we send the documented parameter names and, if the server
-rejects one, parse the rejected keys out of its error, drop them and retry. A
-release that renames or removes a parameter therefore degrades to a warning in
-the report instead of a stack trace. When a server *does* publish a schema, that
-is used first.
+**Argument names come from the server's own schema.** Each tool's
+``input_schema`` is read on connect and our logical arguments are resolved
+against it, so the exact spelling the installed server expects is used --
+``filter`` vs ``filters``, ``count`` vs ``num_results`` vs ``limit``. Note that
+mcp >= 2.0 exposes this as ``input_schema``; reading only the wire's camelCase
+``inputSchema`` yields nothing and leaves a client guessing.
+
+As a second line of defence, a rejected argument is parsed out of the server's
+error and the call retried without it, so a renamed parameter degrades to a
+warning in the report rather than a lost finding.
 
 **Every response is cached and can be replayed.** ``--record`` writes each MCP
 response to ``fixtures/``; ``--offline`` replays them. That is what makes
@@ -40,8 +43,10 @@ _ARG_ALIASES: dict[str, tuple[str, ...]] = {
     "urns": ("urns", "entity_urns", "urn"),
     "direction": ("direction", "lineage_direction"),
     "hops": ("max_hops", "hops", "depth", "degree", "num_hops"),
-    "entity_types": ("entity_types", "types", "entity_type", "filters"),
-    "limit": ("num_results", "limit", "count", "first"),
+    # The server calls this `filter` (singular) and takes a SQL-like string.
+    "entity_filter": ("filter", "filters", "entity_types", "types"),
+    # search uses num_results; get_dataset_queries uses count; schema fields use limit.
+    "limit": ("num_results", "count", "limit", "max_results", "first"),
     "start": ("start", "offset"),
 }
 
@@ -121,7 +126,16 @@ class DataHubMCP:
             await self._session.initialize()
             listing = await self._session.list_tools()
             for tool in listing.tools:
-                self._schemas[tool.name] = getattr(tool, "inputSchema", {}) or {}
+                # mcp >= 2.0 renamed this to `input_schema` (aliased from the
+                # wire's `inputSchema`). Reading only the camelCase name silently
+                # yielded an empty schema, which is how this client ended up
+                # guessing parameter names it did not need to guess.
+                schema = (
+                    getattr(tool, "input_schema", None)
+                    or getattr(tool, "inputSchema", None)
+                    or {}
+                )
+                self._schemas[tool.name] = schema
             if self.record and self.fixtures_dir:
                 self.fixtures_dir.mkdir(parents=True, exist_ok=True)
                 (self.fixtures_dir / "_tools.json").write_text(
@@ -274,13 +288,20 @@ class DataHubMCP:
             self.warnings.append("no search tool exposed by the MCP server")
             return None
         args: dict[str, Any] = {"query": self._structured_query(query)}
-        if limit:
-            args["num_results"] = limit
+        limit_name = self._arg_name(tool, "limit")
+        if limit and limit_name:
+            args[limit_name] = limit
         if entity_types:
-            # Entity filtering uses the server's SQL-like filter syntax.
-            args["filters"] = " OR ".join(
-                f"entity_type = {t.lower()}" for t in entity_types
-            )
+            # SQL-like filter syntax, e.g. "entity_type = dataset".
+            filter_name = self._arg_name(tool, "entity_filter")
+            if filter_name:
+                args[filter_name] = " OR ".join(
+                    f"entity_type = {t.lower()}" for t in entity_types
+                )
+            else:
+                self.warnings.append(
+                    f"{tool}: no filter parameter available -- searching unfiltered"
+                )
         return await self.call(tool, args)
 
     async def get_entities(self, urns: list[str]) -> Any:
@@ -305,17 +326,25 @@ class DataHubMCP:
         args["column"] = None
         return await self.call(tool, args)
 
-    async def list_schema_fields(self, urn: str) -> Any:
+    async def list_schema_fields(self, urn: str, limit: int = 200) -> Any:
         tool = self.has_tool("list_schema_fields", "get_schema", "schema_fields")
         if not tool:
             return None
-        return await self.call(tool, {"urn": urn})
+        args: dict[str, Any] = {"urn": urn}
+        limit_name = self._arg_name(tool, "limit")
+        if limit and limit_name:
+            args[limit_name] = limit
+        return await self.call(tool, args)
 
     async def get_dataset_queries(self, urn: str, limit: int = 25) -> Any:
         tool = self.has_tool("get_dataset_queries", "find_sql_context", "get_queries")
         if not tool:
             return None
-        return await self.call(tool, {"urn": urn})
+        args: dict[str, Any] = {"urn": urn}
+        limit_name = self._arg_name(tool, "limit")
+        if limit and limit_name:
+            args[limit_name] = limit
+        return await self.call(tool, args)
 
     async def whoami(self) -> Any:
         tool = self.has_tool("get_me", "whoami")

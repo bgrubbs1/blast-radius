@@ -16,14 +16,6 @@
         {
           "count": 1,
           "value": "DATASET"
-        },
-        {
-          "count": 0,
-          "value": "DASHBOARD"
-        },
-        {
-          "count": 0,
-          "value": "CORP_USER"
         }
       ],
       "displayName": "Type",
@@ -63,6 +55,16 @@
       "aggregations": [
         {
           "count": 0,
+          "value": "datasetindex_v2"
+        }
+      ],
+      "displayName": "_index",
+      "field": "_index"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 0,
           "value": "true"
         }
       ],
@@ -74,14 +76,6 @@
         {
           "count": 1,
           "value": "DATASET"
-        },
-        {
-          "count": 0,
-          "value": "CORP_USER"
-        },
-        {
-          "count": 0,
-          "value": "DASHBOARD"
         }
       ],
       "displayName": "Type",

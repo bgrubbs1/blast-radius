@@ -1,8 +1,282 @@
 {
-  "get_dataset_queries": {},
-  "get_entities": {},
-  "get_lineage": {},
-  "get_lineage_paths_between": {},
-  "list_schema_fields": {},
-  "search": {}
+  "get_dataset_queries": {
+    "additionalProperties": false,
+    "properties": {
+      "column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "count": {
+        "default": 10,
+        "type": "integer"
+      },
+      "source": {
+        "anyOf": [
+          {
+            "enum": [
+              "MANUAL",
+              "SYSTEM"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "start": {
+        "default": 0,
+        "type": "integer"
+      },
+      "urn": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "urn"
+    ],
+    "type": "object"
+  },
+  "get_entities": {
+    "additionalProperties": false,
+    "properties": {
+      "urns": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "required": [
+      "urns"
+    ],
+    "type": "object"
+  },
+  "get_lineage": {
+    "additionalProperties": false,
+    "properties": {
+      "column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "filter": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "max_hops": {
+        "default": 1,
+        "type": "integer"
+      },
+      "max_results": {
+        "default": 30,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "query": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "upstream": {
+        "default": true,
+        "type": "boolean"
+      },
+      "urn": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "urn"
+    ],
+    "type": "object"
+  },
+  "get_lineage_paths_between": {
+    "additionalProperties": false,
+    "properties": {
+      "direction": {
+        "anyOf": [
+          {
+            "enum": [
+              "upstream",
+              "downstream"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional direction to search. If None (default), automatically discovers\n      the path by trying downstream first, then upstream. Specify \"downstream\" or\n      \"upstream\" explicitly for better performance if you know the direction."
+      },
+      "source_column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional column name in source dataset"
+      },
+      "source_urn": {
+        "description": "URN of the source dataset",
+        "type": "string"
+      },
+      "target_column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional column name in target dataset (required if source_column provided)"
+      },
+      "target_urn": {
+        "description": "URN of the target dataset",
+        "type": "string"
+      }
+    },
+    "required": [
+      "source_urn",
+      "target_urn"
+    ],
+    "type": "object"
+  },
+  "list_schema_fields": {
+    "additionalProperties": false,
+    "properties": {
+      "keywords": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of keywords to filter schema fields (OR matching).\n     - Single keyword: Treated as one keyword (NOT split on whitespace). Use for field names or exact phrases.\n     - Multiple keywords: Multiple keywords, matches any (OR logic).\n     - None or empty list: Returns all fields in priority order (same as get_entities).\n     Matches against fieldPath, description, label, tags, and glossary terms.\n     Matching fields are returned first, sorted by match count."
+      },
+      "limit": {
+        "default": 100,
+        "description": "Maximum number of fields to return (default: 100)",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "description": "Number of fields to skip for pagination (default: 0)",
+        "type": "integer"
+      },
+      "urn": {
+        "description": "Dataset URN",
+        "type": "string"
+      }
+    },
+    "required": [
+      "urn"
+    ],
+    "type": "object"
+  },
+  "search": {
+    "additionalProperties": false,
+    "properties": {
+      "filter": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "num_results": {
+        "default": 10,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "query": {
+        "default": "*",
+        "type": "string"
+      },
+      "sort_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "sort_order": {
+        "anyOf": [
+          {
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "desc"
+      }
+    },
+    "type": "object"
+  }
 }
