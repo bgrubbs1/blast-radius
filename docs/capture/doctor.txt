@@ -1,0 +1,6 @@
+GMS URL: http://localhost:8080
+MCP server: up — 6 tools
+tools: get_dataset_queries, get_entities, get_lineage, 
+get_lineage_paths_between, list_schema_fields, search
+  search: yes
+  get_lineage: yes

@@ -1,0 +1,16 @@
+--- a/dim_customer_ltv.0.sql
++++ b/dim_customer_ltv.0.sql
+@@ -1,6 +1,7 @@
+-SELECT o.customer_id,
+-       COUNT(*) AS orders,
+-       SUM(o.discount_amount) AS total_discount,
+-       SUM(o.net_amount) AS ltv
+-FROM analytics.public.fct_orders o
+-GROUP BY o.customer_id
++SELECT
++  o.customer_id,
++  COUNT(*) AS orders,
++  SUM(o.net_amount) AS ltv
++FROM analytics.public.fct_orders AS o
++GROUP BY
++  o.customer_id

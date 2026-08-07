@@ -1,0 +1,8 @@
+## Who to notify
+
+- **maya.iyer** — BREAKING: `dim_customer_ltv`
+- **sam.okafor** — BREAKING: `mart_orders_flat`
+- **(unowned)** — AT RISK: `Finance Exec Overview`
+- **finance-analytics** — AT RISK: `rpt_daily_revenue`
+
+## Rollout order

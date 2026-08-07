@@ -1,0 +1,4 @@
+$ blast-radius plan --change migration.sql --fail-on breaking
+  2 breaking - 2 at risk - 1 safe - 3 patches
+$ echo $?
+2   <- CI stops the merge
