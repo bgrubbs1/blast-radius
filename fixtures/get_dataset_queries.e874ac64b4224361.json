@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "statement": "SELECT order_id, CURRENT_TIMESTAMP AS loaded_at\nFROM analytics.public.fct_orders",
+      "urn": "urn:li:query:audit-load"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
+}

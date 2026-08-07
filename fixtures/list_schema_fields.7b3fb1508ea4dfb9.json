@@ -1,0 +1,17 @@
+{
+  "fields": [
+    {
+      "fieldPath": "order_id",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "loaded_at",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "row_hash",
+      "type": "STRING"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
+}

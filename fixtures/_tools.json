@@ -1,0 +1,61 @@
+{
+  "get_dataset_queries": {
+    "properties": {
+      "limit": {
+        "type": "integer"
+      },
+      "urn": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "get_entities": {
+    "properties": {
+      "urns": {
+        "type": "array"
+      }
+    },
+    "type": "object"
+  },
+  "get_lineage": {
+    "properties": {
+      "direction": {
+        "type": "string"
+      },
+      "max_hops": {
+        "type": "integer"
+      },
+      "urn": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "get_me": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_schema_fields": {
+    "properties": {
+      "urn": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "search": {
+    "properties": {
+      "entity_types": {
+        "type": "array"
+      },
+      "limit": {
+        "type": "integer"
+      },
+      "query": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  }
+}

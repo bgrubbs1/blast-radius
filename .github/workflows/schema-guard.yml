@@ -1,0 +1,72 @@
+# Gate a pull request on downstream impact.
+#
+# Any migration file touched by the PR is analysed against DataHub. If a
+# downstream asset provably breaks, blast-radius exits 2 and the job fails --
+# with the impact report attached as an artifact so the reviewer sees why.
+name: schema-guard
+
+on:
+  pull_request:
+    paths:
+      - "migrations/**/*.sql"
+      - "models/**/*.sql"
+
+jobs:
+  blast-radius:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v5 # provides uvx for the DataHub MCP server
+
+      - name: Install blast-radius
+        run: pip install .
+
+      - name: Find the changed migration
+        id: changed
+        run: |
+          file=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" \
+                 -- 'migrations/**/*.sql' 'models/**/*.sql' | head -1)
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          if [ -z "$file" ]; then echo "no migration in this PR"; fi
+
+      - name: Analyse blast radius
+        if: steps.changed.outputs.file != ''
+        env:
+          DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
+          DATAHUB_GMS_TOKEN: ${{ secrets.DATAHUB_GMS_TOKEN }}
+        run: |
+          blast-radius plan \
+            --change "${{ steps.changed.outputs.file }}" \
+            --depth 3 \
+            --out out/ \
+            --fail-on breaking
+
+      - name: Upload the impact report
+        if: always() && steps.changed.outputs.file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: blast-radius-report
+          path: out/
+
+      - name: Comment the report on the PR
+        if: failure() && steps.changed.outputs.file != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'out/impact-report.md';
+            if (!fs.existsSync(path)) return;
+            const body = fs.readFileSync(path, 'utf8').slice(0, 65000);
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });

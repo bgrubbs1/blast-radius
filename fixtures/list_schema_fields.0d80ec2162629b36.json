@@ -1,0 +1,17 @@
+{
+  "fields": [
+    {
+      "fieldPath": "order_id",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "customer_id",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "total",
+      "type": "STRING"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
+}

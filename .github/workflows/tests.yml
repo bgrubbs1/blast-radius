@@ -1,0 +1,27 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      # The demo must keep working from the recorded fixtures alone -- no DataHub,
+      # no network. If this breaks, the fixtures have drifted from the code.
+      - run: blast-radius demo --out out/
+      - name: Fixtures still reproduce the recorded verdicts
+        run: python scripts/check_examples.py

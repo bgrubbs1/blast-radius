@@ -1,0 +1,12 @@
+--- a/models/marts/fct_orders.sql
++++ b/models/marts/fct_orders.sql
+@@ -1,10 +1,9 @@
+ select
+     order_id,
+     customer_id,
+     order_ts,
+     gross_amount,
+-    discount_amount,
+     net_amount
+ from {{ ref('stg_orders') }}
+ where order_ts >= '2024-01-01'

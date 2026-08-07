@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "statement": "SELECT * FROM analytics.public.fct_orders WHERE order_ts >= CURRENT_DATE - 30",
+      "urn": "urn:li:query:daily-revenue"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
+}

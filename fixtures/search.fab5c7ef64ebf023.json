@@ -1,0 +1,10 @@
+{
+  "searchResults": [
+    {
+      "entity": {
+        "name": "analytics.public.fct_orders",
+        "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+      }
+    }
+  ]
+}

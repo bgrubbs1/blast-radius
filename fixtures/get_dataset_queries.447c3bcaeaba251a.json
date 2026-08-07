@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "statement": "SELECT order_id, customer_id, net_amount AS total\nFROM analytics.public.fct_orders\nWHERE discount_amount > 0",
+      "urn": "urn:li:query:orders-flat"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
+}

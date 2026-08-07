@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {
+      "fieldPath": "customer_id",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "orders",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "total_discount",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "ltv",
+      "type": "STRING"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
+}

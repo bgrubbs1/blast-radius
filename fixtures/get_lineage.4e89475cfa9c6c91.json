@@ -1,0 +1,36 @@
+{
+  "direction": "DOWNSTREAM",
+  "results": [
+    {
+      "degree": 1,
+      "name": "analytics.marts.dim_customer_ltv",
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
+    },
+    {
+      "degree": 1,
+      "name": "analytics.marts.rpt_daily_revenue",
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
+    },
+    {
+      "degree": 1,
+      "name": "analytics.marts.mart_orders_flat",
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
+    },
+    {
+      "degree": 1,
+      "name": "analytics.staging.stg_orders_audit",
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
+    },
+    {
+      "degree": 2,
+      "name": "Finance Exec Overview",
+      "urn": "urn:li:dashboard:(looker,finance_exec_overview)"
+    },
+    {
+      "degree": 2,
+      "name": "order_propensity_v3",
+      "urn": "urn:li:mlFeatureTable:(urn:li:dataPlatform:feast,order_propensity_v3)"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+}

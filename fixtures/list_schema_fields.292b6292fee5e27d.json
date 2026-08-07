@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {
+      "fieldPath": "order_date",
+      "type": "STRING"
+    },
+    {
+      "fieldPath": "gross_amount",
+      "type": "NUMBER"
+    },
+    {
+      "fieldPath": "discount_amount",
+      "type": "NUMBER"
+    },
+    {
+      "fieldPath": "net_amount",
+      "type": "NUMBER"
+    }
+  ],
+  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
+}
