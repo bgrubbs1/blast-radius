@@ -1,0 +1,26 @@
+{
+  "count": 1,
+  "queries": [
+    {
+      "properties": {
+        "description": "Populates analytics.staging.stg_orders_audit",
+        "lastModified": {
+          "actor": "urn:li:corpuser:datahub"
+        },
+        "name": "audit-load",
+        "source": "MANUAL",
+        "statement": {
+          "language": "SQL",
+          "value": "SELECT order_id, CURRENT_TIMESTAMP AS loaded_at\nFROM analytics.public.fct_orders"
+        }
+      },
+      "subjects": [
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)",
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+      ],
+      "urn": "urn:li:query:audit-load"
+    }
+  ],
+  "start": 0,
+  "total": 1
+}

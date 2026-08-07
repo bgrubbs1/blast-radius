@@ -1,5 +1,5 @@
---- a/analytics.marts.rpt_daily_revenue.1.sql
-+++ b/analytics.marts.rpt_daily_revenue.1.sql
+--- a/rpt_daily_revenue.1.sql
++++ b/rpt_daily_revenue.1.sql
 @@ -1 +1,5 @@
 -SELECT * FROM analytics.public.fct_orders WHERE order_ts >= CURRENT_DATE - 30
 +SELECT

@@ -6,11 +6,13 @@ either DataHub Core or DataHub Cloud.
 
 Two design decisions worth knowing about:
 
-**Argument names are discovered, not hardcoded.** On connect we read each
-tool's ``inputSchema`` and map our logical calls onto whatever the installed
-server actually accepts (``max_hops`` vs ``hops`` vs ``depth``, ``urns`` vs
-``urn``, ...). A new MCP server release that renames a parameter degrades to a
-warning in the report instead of a stack trace.
+**Argument names adapt to the server.** The DataHub MCP server validates
+arguments at runtime and advertises an *empty* ``inputSchema``, so there is
+nothing to introspect: we send the documented parameter names and, if the server
+rejects one, parse the rejected keys out of its error, drop them and retry. A
+release that renames or removes a parameter therefore degrades to a warning in
+the report instead of a stack trace. When a server *does* publish a schema, that
+is used first.
 
 **Every response is cached and can be replayed.** ``--record`` writes each MCP
 response to ``fixtures/``; ``--offline`` replays them. That is what makes
@@ -23,6 +25,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any
@@ -38,7 +41,7 @@ _ARG_ALIASES: dict[str, tuple[str, ...]] = {
     "direction": ("direction", "lineage_direction"),
     "hops": ("max_hops", "hops", "depth", "degree", "num_hops"),
     "entity_types": ("entity_types", "types", "entity_type", "filters"),
-    "limit": ("limit", "count", "num_results", "first"),
+    "limit": ("num_results", "limit", "count", "first"),
     "start": ("start", "offset"),
 }
 
@@ -209,14 +212,36 @@ class DataHubMCP:
             raise DataHubError("not connected: use 'async with DataHubMCP(...)'")
 
         self.tool_calls.append(label)
-        try:
-            result = await self._session.call_tool(tool, args)
-        except Exception as exc:
-            self.warnings.append(f"{tool} failed: {exc}")
-            return None
+        attempt = dict(args)
+        result = None
+        for _ in range(3):
+            try:
+                result = await self._session.call_tool(tool, attempt)
+            except Exception as exc:
+                self.warnings.append(f"{tool} failed: {exc}")
+                return None
 
-        if getattr(result, "isError", False):
-            self.warnings.append(f"{tool} returned an error: {_as_text(result)}")
+            # A rejected argument does not always come back as isError: this
+            # server reports pydantic validation failures as ordinary text
+            # content. So look for rejected parameter names either way.
+            text = _as_text(result)
+            rejected = _rejected_arguments(text)
+            removable = [key for key in rejected if key in attempt]
+            if not removable and not getattr(result, "isError", False):
+                break
+
+            # Drop exactly the parameters the server named and retry, so a
+            # renamed or removed argument costs a warning rather than a finding.
+            if not removable:
+                self.warnings.append(f"{tool} returned an error: {text[:300]}")
+                return None
+            for key in removable:
+                attempt.pop(key, None)
+            self.warnings.append(
+                f"{tool}: server rejected {', '.join(removable)} -- retried without"
+            )
+        else:
+            self.warnings.append(f"{tool}: gave up after retries")
             return None
 
         payload = _decode(result)
@@ -230,6 +255,17 @@ class DataHubMCP:
 
     # -- logical operations --------------------------------------------------
 
+    @staticmethod
+    def _structured_query(text: str) -> str:
+        """Turn a table name into DataHub's structured search syntax.
+
+        The server's own guidance: start with ``/q`` and join terms with ``+``
+        rather than quoting, because ``+`` handles the underscores and dots in
+        table names correctly.
+        """
+        terms = [t for t in re.split(r"[^A-Za-z0-9]+", text) if t]
+        return "/q " + "+".join(terms) if terms else "/q *"
+
     async def search(
         self, query: str, entity_types: list[str] | None = None, limit: int = 10
     ) -> Any:
@@ -237,18 +273,21 @@ class DataHubMCP:
         if not tool:
             self.warnings.append("no search tool exposed by the MCP server")
             return None
-        args = self._build_args(tool, query=query, limit=limit)
+        args: dict[str, Any] = {"query": self._structured_query(query)}
+        if limit:
+            args["num_results"] = limit
         if entity_types:
-            name = self._arg_name(tool, "entity_types")
-            if name and name != "filters":
-                args[name] = entity_types
+            # Entity filtering uses the server's SQL-like filter syntax.
+            args["filters"] = " OR ".join(
+                f"entity_type = {t.lower()}" for t in entity_types
+            )
         return await self.call(tool, args)
 
     async def get_entities(self, urns: list[str]) -> Any:
         tool = self.has_tool("get_entities", "get_entity", "get_dataset")
         if not tool:
             return None
-        return await self.call(tool, self._build_args(tool, urns=urns))
+        return await self.call(tool, {"urns": list(urns)})
 
     async def get_lineage(
         self, urn: str, direction: str = "DOWNSTREAM", hops: int = 2
@@ -257,21 +296,26 @@ class DataHubMCP:
         if not tool:
             self.warnings.append("no lineage tool exposed by the MCP server")
             return None
-        return await self.call(
-            tool, self._build_args(tool, urn=urn, direction=direction, hops=hops)
-        )
+        args: dict[str, Any] = {
+            "urn": urn,
+            "upstream": direction.upper() == "UPSTREAM",
+            "max_hops": hops,
+        }
+        # `column: null` asks for whole-dataset lineage rather than one field.
+        args["column"] = None
+        return await self.call(tool, args)
 
     async def list_schema_fields(self, urn: str) -> Any:
         tool = self.has_tool("list_schema_fields", "get_schema", "schema_fields")
         if not tool:
             return None
-        return await self.call(tool, self._build_args(tool, urn=urn))
+        return await self.call(tool, {"urn": urn})
 
     async def get_dataset_queries(self, urn: str, limit: int = 25) -> Any:
         tool = self.has_tool("get_dataset_queries", "find_sql_context", "get_queries")
         if not tool:
             return None
-        return await self.call(tool, self._build_args(tool, urn=urn, limit=limit))
+        return await self.call(tool, {"urn": urn})
 
     async def whoami(self) -> Any:
         tool = self.has_tool("get_me", "whoami")
@@ -279,6 +323,43 @@ class DataHubMCP:
 
 
 # -- payload decoding --------------------------------------------------------
+
+
+_REJECTED_LOC_RE = re.compile(r"'loc':\s*\(\s*'([^']+)'")
+_REJECTED_JSON_RE = re.compile(r'"loc":\s*\[\s*"([^"]+)"')
+_UNEXPECTED_RE = re.compile(r"unexpected keyword argument '([^']+)'", re.IGNORECASE)
+
+
+def _rejected_arguments(error_text: str) -> list[str]:
+    """Parameter names the server complained about, in the order reported.
+
+    Covers the shapes seen in practice: pydantic's tuple ``loc``, its JSON
+    ``loc`` array, and a plain Python ``TypeError`` message.
+    """
+    names: list[str] = []
+    for pattern in (_REJECTED_LOC_RE, _REJECTED_JSON_RE, _UNEXPECTED_RE):
+        for match in pattern.finditer(error_text or ""):
+            name = match.group(1)
+            if name not in names:
+                names.append(name)
+
+    # pydantic's plain-text form puts the field name on its own line above the
+    # message:
+    #     1 validation error for call[search]
+    #     filters
+    #       Unexpected keyword argument [type=unexpected_keyword_argument, ...]
+    lines = (error_text or "").splitlines()
+    for index, line in enumerate(lines):
+        if "unexpected keyword argument" not in line.lower():
+            continue
+        for previous in reversed(lines[:index]):
+            candidate = previous.strip().strip("'\"")
+            if not candidate or candidate.lower().startswith(("1 validation", "validation error")):
+                continue
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", candidate) and candidate not in names:
+                names.append(candidate)
+            break
+    return names
 
 
 def _as_text(result: Any) -> str:

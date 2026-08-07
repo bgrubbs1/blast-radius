@@ -1,0 +1,417 @@
+[
+  {
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "name": "fct_orders",
+    "ownership": {
+      "owners": [
+        {
+          "owner": {
+            "urn": "urn:li:corpuser:sam.okafor"
+          },
+          "ownershipType": {
+            "info": {
+              "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+              "name": "Technical Owner"
+            },
+            "type": "CUSTOM_OWNERSHIP_TYPE",
+            "urn": "urn:li:ownershipType:__system__technical_owner"
+          },
+          "type": "TECHNICAL_OWNER"
+        }
+      ]
+    },
+    "platform": {
+      "name": "snowflake",
+      "urn": "urn:li:dataPlatform:snowflake"
+    },
+    "properties": {
+      "description": "Demo asset for blast-radius (analytics.public.fct_orders).",
+      "name": "fct_orders"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "schemaMetadata": {
+      "fields": [
+        {
+          "fieldPath": "customer_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "discount_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "gross_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "net_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "order_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "order_ts",
+          "nativeDataType": "TIME",
+          "nullable": false
+        }
+      ],
+      "name": "analytics.public.fct_orders",
+      "platformUrn": "urn:li:dataPlatform:snowflake"
+    },
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+  },
+  {
+    "domain": {
+      "domain": {
+        "children": {
+          "total": 0
+        },
+        "dataProducts": {
+          "total": 0
+        },
+        "entities": {
+          "total": 1
+        },
+        "parentDomains": {
+          "count": 0
+        },
+        "urn": "urn:li:domain:customer"
+      }
+    },
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "name": "dim_customer_ltv",
+    "ownership": {
+      "owners": [
+        {
+          "owner": {
+            "urn": "urn:li:corpuser:maya.iyer"
+          },
+          "ownershipType": {
+            "info": {
+              "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+              "name": "Technical Owner"
+            },
+            "type": "CUSTOM_OWNERSHIP_TYPE",
+            "urn": "urn:li:ownershipType:__system__technical_owner"
+          },
+          "type": "TECHNICAL_OWNER"
+        }
+      ]
+    },
+    "platform": {
+      "name": "snowflake",
+      "urn": "urn:li:dataPlatform:snowflake"
+    },
+    "properties": {
+      "description": "Demo asset for blast-radius (analytics.marts.dim_customer_ltv).",
+      "name": "dim_customer_ltv"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "schemaMetadata": {
+      "fields": [
+        {
+          "fieldPath": "customer_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "ltv",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "orders",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "total_discount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        }
+      ],
+      "name": "analytics.marts.dim_customer_ltv",
+      "platformUrn": "urn:li:dataPlatform:snowflake"
+    },
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
+  },
+  {
+    "domain": {
+      "domain": {
+        "children": {
+          "total": 0
+        },
+        "dataProducts": {
+          "total": 0
+        },
+        "entities": {
+          "total": 2
+        },
+        "parentDomains": {
+          "count": 0
+        },
+        "urn": "urn:li:domain:finance"
+      }
+    },
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "name": "mart_orders_flat",
+    "ownership": {
+      "owners": [
+        {
+          "owner": {
+            "urn": "urn:li:corpuser:sam.okafor"
+          },
+          "ownershipType": {
+            "info": {
+              "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+              "name": "Technical Owner"
+            },
+            "type": "CUSTOM_OWNERSHIP_TYPE",
+            "urn": "urn:li:ownershipType:__system__technical_owner"
+          },
+          "type": "TECHNICAL_OWNER"
+        }
+      ]
+    },
+    "platform": {
+      "name": "snowflake",
+      "urn": "urn:li:dataPlatform:snowflake"
+    },
+    "properties": {
+      "description": "Demo asset for blast-radius (analytics.marts.mart_orders_flat).",
+      "name": "mart_orders_flat"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "schemaMetadata": {
+      "fields": [
+        {
+          "fieldPath": "customer_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "order_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "total",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        }
+      ],
+      "name": "analytics.marts.mart_orders_flat",
+      "platformUrn": "urn:li:dataPlatform:snowflake"
+    },
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
+  },
+  {
+    "domain": {
+      "domain": {
+        "children": {
+          "total": 0
+        },
+        "dataProducts": {
+          "total": 0
+        },
+        "entities": {
+          "total": 2
+        },
+        "parentDomains": {
+          "count": 0
+        },
+        "urn": "urn:li:domain:finance"
+      }
+    },
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "name": "rpt_daily_revenue",
+    "ownership": {
+      "owners": [
+        {
+          "owner": {
+            "name": "finance-analytics",
+            "urn": "urn:li:corpGroup:finance-analytics"
+          },
+          "ownershipType": {
+            "info": {
+              "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+              "name": "Technical Owner"
+            },
+            "type": "CUSTOM_OWNERSHIP_TYPE",
+            "urn": "urn:li:ownershipType:__system__technical_owner"
+          },
+          "type": "TECHNICAL_OWNER"
+        }
+      ]
+    },
+    "platform": {
+      "name": "snowflake",
+      "urn": "urn:li:dataPlatform:snowflake"
+    },
+    "properties": {
+      "description": "Demo asset for blast-radius (analytics.marts.rpt_daily_revenue).",
+      "name": "rpt_daily_revenue"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "schemaMetadata": {
+      "fields": [
+        {
+          "fieldPath": "discount_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "gross_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "net_amount",
+          "nativeDataType": "NUMBER",
+          "nullable": false
+        },
+        {
+          "fieldPath": "order_date",
+          "nativeDataType": "TIME",
+          "nullable": false
+        }
+      ],
+      "name": "analytics.marts.rpt_daily_revenue",
+      "platformUrn": "urn:li:dataPlatform:snowflake"
+    },
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
+  },
+  {
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "name": "stg_orders_audit",
+    "ownership": {
+      "owners": [
+        {
+          "owner": {
+            "urn": "urn:li:corpuser:maya.iyer"
+          },
+          "ownershipType": {
+            "info": {
+              "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+              "name": "Technical Owner"
+            },
+            "type": "CUSTOM_OWNERSHIP_TYPE",
+            "urn": "urn:li:ownershipType:__system__technical_owner"
+          },
+          "type": "TECHNICAL_OWNER"
+        }
+      ]
+    },
+    "platform": {
+      "name": "snowflake",
+      "urn": "urn:li:dataPlatform:snowflake"
+    },
+    "properties": {
+      "description": "Demo asset for blast-radius (analytics.staging.stg_orders_audit).",
+      "name": "stg_orders_audit"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "schemaMetadata": {
+      "fields": [
+        {
+          "fieldPath": "loaded_at",
+          "nativeDataType": "TIME",
+          "nullable": false
+        },
+        {
+          "fieldPath": "order_id",
+          "nativeDataType": "STRING",
+          "nullable": false
+        },
+        {
+          "fieldPath": "row_hash",
+          "nativeDataType": "STRING",
+          "nullable": false
+        }
+      ],
+      "name": "analytics.staging.stg_orders_audit",
+      "platformUrn": "urn:li:dataPlatform:snowflake"
+    },
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
+  },
+  {
+    "dashboardId": "finance_exec_overview",
+    "health": [
+      {
+        "status": "PASS",
+        "type": "INCIDENTS"
+      }
+    ],
+    "platform": {
+      "name": "looker",
+      "urn": "urn:li:dataPlatform:looker"
+    },
+    "properties": {
+      "description": "Weekly revenue review deck.",
+      "lastModified": {
+        "time": 1786111206000
+      },
+      "name": "Finance Exec Overview"
+    },
+    "relatedDocuments": {
+      "count": 10,
+      "start": 0,
+      "total": 0
+    },
+    "tool": "looker",
+    "type": "DASHBOARD",
+    "urn": "urn:li:dashboard:(looker,finance_exec_overview)"
+  }
+]

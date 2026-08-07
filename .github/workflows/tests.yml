@@ -23,5 +23,5 @@ jobs:
       # The demo must keep working from the recorded fixtures alone -- no DataHub,
       # no network. If this breaks, the fixtures have drifted from the code.
       - run: blast-radius demo --out out/
-      - name: Fixtures still reproduce the recorded verdicts
+      - name: Recorded DataHub payloads still reproduce the committed verdicts
         run: python scripts/check_examples.py

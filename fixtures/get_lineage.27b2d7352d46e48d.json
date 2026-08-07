@@ -1,0 +1,397 @@
+{
+  "downstreams": {
+    "facets": [
+      {
+        "aggregations": [
+          {
+            "count": 0,
+            "value": "1"
+          },
+          {
+            "count": 0,
+            "value": "2"
+          },
+          {
+            "count": 0,
+            "value": "3+"
+          }
+        ],
+        "displayName": "Degree of Dependencies",
+        "field": "degree"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 4,
+            "value": "DATASET"
+          },
+          {
+            "count": 1,
+            "value": "DASHBOARD"
+          }
+        ],
+        "displayName": "Type",
+        "field": "_entityType"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 4,
+            "entity": {
+              "urn": "urn:li:dataPlatform:snowflake"
+            },
+            "value": "urn:li:dataPlatform:snowflake"
+          },
+          {
+            "count": 1,
+            "entity": {
+              "urn": "urn:li:dataPlatform:looker"
+            },
+            "value": "urn:li:dataPlatform:looker"
+          }
+        ],
+        "displayName": "Platform",
+        "field": "platform"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 2,
+            "entity": {
+              "urn": "urn:li:domain:finance"
+            },
+            "value": "urn:li:domain:finance"
+          },
+          {
+            "count": 1,
+            "entity": {
+              "urn": "urn:li:domain:customer"
+            },
+            "value": "urn:li:domain:customer"
+          }
+        ],
+        "displayName": "Domain",
+        "field": "domains"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 2,
+            "entity": {
+              "urn": "urn:li:corpuser:maya.iyer"
+            },
+            "value": "urn:li:corpuser:maya.iyer"
+          },
+          {
+            "count": 1,
+            "entity": {
+              "urn": "urn:li:corpGroup:finance-analytics"
+            },
+            "value": "urn:li:corpGroup:finance-analytics"
+          },
+          {
+            "count": 1,
+            "entity": {
+              "urn": "urn:li:corpuser:sam.okafor"
+            },
+            "value": "urn:li:corpuser:sam.okafor"
+          }
+        ],
+        "displayName": "Owned By",
+        "field": "owners"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 4,
+            "value": "PROD"
+          }
+        ],
+        "displayName": "Environment",
+        "field": "origin"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 4,
+            "value": "DATASET"
+          },
+          {
+            "count": 1,
+            "value": "DASHBOARD"
+          }
+        ],
+        "displayName": "Type\u241eSub Type",
+        "field": "_entityType\u241etypeNames"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 0,
+            "value": "true"
+          }
+        ],
+        "displayName": "removed",
+        "field": "removed"
+      },
+      {
+        "aggregations": [
+          {
+            "count": 4,
+            "value": "DATASET"
+          },
+          {
+            "count": 1,
+            "value": "DASHBOARD"
+          }
+        ],
+        "displayName": "Type",
+        "field": "entity"
+      }
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "returned": 5,
+    "searchResults": [
+      {
+        "degree": 1,
+        "entity": {
+          "domain": {
+            "domain": {
+              "children": {
+                "total": 0
+              },
+              "dataProducts": {
+                "total": 0
+              },
+              "entities": {
+                "total": 1
+              },
+              "parentDomains": {
+                "count": 0
+              },
+              "urn": "urn:li:domain:customer"
+            }
+          },
+          "health": [
+            {
+              "status": "PASS",
+              "type": "INCIDENTS"
+            }
+          ],
+          "name": "dim_customer_ltv",
+          "ownership": {
+            "owners": [
+              {
+                "owner": {
+                  "urn": "urn:li:corpuser:maya.iyer"
+                },
+                "ownershipType": {
+                  "info": {
+                    "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+                    "name": "Technical Owner"
+                  },
+                  "type": "CUSTOM_OWNERSHIP_TYPE",
+                  "urn": "urn:li:ownershipType:__system__technical_owner"
+                },
+                "type": "TECHNICAL_OWNER"
+              }
+            ]
+          },
+          "platform": {
+            "name": "snowflake",
+            "urn": "urn:li:dataPlatform:snowflake"
+          },
+          "properties": {
+            "description": "Demo asset for blast-radius (analytics.marts.dim_customer_ltv).",
+            "name": "dim_customer_ltv"
+          },
+          "type": "DATASET",
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
+        }
+      },
+      {
+        "degree": 1,
+        "entity": {
+          "domain": {
+            "domain": {
+              "children": {
+                "total": 0
+              },
+              "dataProducts": {
+                "total": 0
+              },
+              "entities": {
+                "total": 2
+              },
+              "parentDomains": {
+                "count": 0
+              },
+              "urn": "urn:li:domain:finance"
+            }
+          },
+          "health": [
+            {
+              "status": "PASS",
+              "type": "INCIDENTS"
+            }
+          ],
+          "name": "mart_orders_flat",
+          "ownership": {
+            "owners": [
+              {
+                "owner": {
+                  "urn": "urn:li:corpuser:sam.okafor"
+                },
+                "ownershipType": {
+                  "info": {
+                    "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+                    "name": "Technical Owner"
+                  },
+                  "type": "CUSTOM_OWNERSHIP_TYPE",
+                  "urn": "urn:li:ownershipType:__system__technical_owner"
+                },
+                "type": "TECHNICAL_OWNER"
+              }
+            ]
+          },
+          "platform": {
+            "name": "snowflake",
+            "urn": "urn:li:dataPlatform:snowflake"
+          },
+          "properties": {
+            "description": "Demo asset for blast-radius (analytics.marts.mart_orders_flat).",
+            "name": "mart_orders_flat"
+          },
+          "type": "DATASET",
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
+        }
+      },
+      {
+        "degree": 1,
+        "entity": {
+          "domain": {
+            "domain": {
+              "children": {
+                "total": 0
+              },
+              "dataProducts": {
+                "total": 0
+              },
+              "entities": {
+                "total": 2
+              },
+              "parentDomains": {
+                "count": 0
+              },
+              "urn": "urn:li:domain:finance"
+            }
+          },
+          "health": [
+            {
+              "status": "PASS",
+              "type": "INCIDENTS"
+            }
+          ],
+          "name": "rpt_daily_revenue",
+          "ownership": {
+            "owners": [
+              {
+                "owner": {
+                  "name": "finance-analytics",
+                  "urn": "urn:li:corpGroup:finance-analytics"
+                },
+                "ownershipType": {
+                  "info": {
+                    "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+                    "name": "Technical Owner"
+                  },
+                  "type": "CUSTOM_OWNERSHIP_TYPE",
+                  "urn": "urn:li:ownershipType:__system__technical_owner"
+                },
+                "type": "TECHNICAL_OWNER"
+              }
+            ]
+          },
+          "platform": {
+            "name": "snowflake",
+            "urn": "urn:li:dataPlatform:snowflake"
+          },
+          "properties": {
+            "description": "Demo asset for blast-radius (analytics.marts.rpt_daily_revenue).",
+            "name": "rpt_daily_revenue"
+          },
+          "type": "DATASET",
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
+        }
+      },
+      {
+        "degree": 1,
+        "entity": {
+          "health": [
+            {
+              "status": "PASS",
+              "type": "INCIDENTS"
+            }
+          ],
+          "name": "stg_orders_audit",
+          "ownership": {
+            "owners": [
+              {
+                "owner": {
+                  "urn": "urn:li:corpuser:maya.iyer"
+                },
+                "ownershipType": {
+                  "info": {
+                    "description": "Involved in the production, maintenance, or distribution of the asset(s).",
+                    "name": "Technical Owner"
+                  },
+                  "type": "CUSTOM_OWNERSHIP_TYPE",
+                  "urn": "urn:li:ownershipType:__system__technical_owner"
+                },
+                "type": "TECHNICAL_OWNER"
+              }
+            ]
+          },
+          "platform": {
+            "name": "snowflake",
+            "urn": "urn:li:dataPlatform:snowflake"
+          },
+          "properties": {
+            "description": "Demo asset for blast-radius (analytics.staging.stg_orders_audit).",
+            "name": "stg_orders_audit"
+          },
+          "type": "DATASET",
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
+        }
+      },
+      {
+        "degree": 2,
+        "entity": {
+          "dashboardId": "finance_exec_overview",
+          "health": [
+            {
+              "status": "PASS",
+              "type": "INCIDENTS"
+            }
+          ],
+          "platform": {
+            "name": "looker",
+            "urn": "urn:li:dataPlatform:looker"
+          },
+          "properties": {
+            "description": "Weekly revenue review deck.",
+            "lastModified": {
+              "time": 1786111206000
+            },
+            "name": "Finance Exec Overview"
+          },
+          "tool": "looker",
+          "type": "DASHBOARD",
+          "urn": "urn:li:dashboard:(looker,finance_exec_overview)"
+        }
+      }
+    ],
+    "total": 5
+  }
+}

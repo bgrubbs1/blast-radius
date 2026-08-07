@@ -1,5 +1,5 @@
---- a/analytics.marts.dim_customer_ltv.0.sql
-+++ b/analytics.marts.dim_customer_ltv.0.sql
+--- a/dim_customer_ltv.0.sql
++++ b/dim_customer_ltv.0.sql
 @@ -1,6 +1,7 @@
 -SELECT o.customer_id,
 -       COUNT(*) AS orders,

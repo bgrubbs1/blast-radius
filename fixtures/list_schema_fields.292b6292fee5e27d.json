@@ -1,21 +1,30 @@
 {
   "fields": [
     {
-      "fieldPath": "order_date",
-      "type": "STRING"
+      "fieldPath": "discount_amount",
+      "nativeDataType": "NUMBER",
+      "nullable": false
     },
     {
       "fieldPath": "gross_amount",
-      "type": "NUMBER"
-    },
-    {
-      "fieldPath": "discount_amount",
-      "type": "NUMBER"
+      "nativeDataType": "NUMBER",
+      "nullable": false
     },
     {
       "fieldPath": "net_amount",
-      "type": "NUMBER"
+      "nativeDataType": "NUMBER",
+      "nullable": false
+    },
+    {
+      "fieldPath": "order_date",
+      "nativeDataType": "TIME",
+      "nullable": false
     }
   ],
+  "matchingCount": null,
+  "offset": 0,
+  "remainingCount": 0,
+  "returned": 4,
+  "totalFields": 4,
   "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)"
 }

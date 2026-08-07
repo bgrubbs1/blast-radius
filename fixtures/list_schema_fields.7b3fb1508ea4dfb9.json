@@ -1,17 +1,25 @@
 {
   "fields": [
     {
-      "fieldPath": "order_id",
-      "type": "STRING"
+      "fieldPath": "loaded_at",
+      "nativeDataType": "TIME",
+      "nullable": false
     },
     {
-      "fieldPath": "loaded_at",
-      "type": "STRING"
+      "fieldPath": "order_id",
+      "nativeDataType": "STRING",
+      "nullable": false
     },
     {
       "fieldPath": "row_hash",
-      "type": "STRING"
+      "nativeDataType": "STRING",
+      "nullable": false
     }
   ],
+  "matchingCount": null,
+  "offset": 0,
+  "remainingCount": 0,
+  "returned": 3,
+  "totalFields": 3,
   "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)"
 }

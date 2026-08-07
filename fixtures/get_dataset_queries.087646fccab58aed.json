@@ -1,0 +1,26 @@
+{
+  "count": 1,
+  "queries": [
+    {
+      "properties": {
+        "description": "Populates analytics.marts.mart_orders_flat",
+        "lastModified": {
+          "actor": "urn:li:corpuser:datahub"
+        },
+        "name": "orders-flat",
+        "source": "MANUAL",
+        "statement": {
+          "language": "SQL",
+          "value": "SELECT order_id, customer_id, net_amount AS total\nFROM analytics.public.fct_orders\nWHERE discount_amount > 0"
+        }
+      },
+      "subjects": [
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)",
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+      ],
+      "urn": "urn:li:query:orders-flat"
+    }
+  ],
+  "start": 0,
+  "total": 1
+}

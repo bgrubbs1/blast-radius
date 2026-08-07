@@ -2,20 +2,29 @@
   "fields": [
     {
       "fieldPath": "customer_id",
-      "type": "STRING"
-    },
-    {
-      "fieldPath": "orders",
-      "type": "STRING"
-    },
-    {
-      "fieldPath": "total_discount",
-      "type": "STRING"
+      "nativeDataType": "STRING",
+      "nullable": false
     },
     {
       "fieldPath": "ltv",
-      "type": "STRING"
+      "nativeDataType": "NUMBER",
+      "nullable": false
+    },
+    {
+      "fieldPath": "orders",
+      "nativeDataType": "NUMBER",
+      "nullable": false
+    },
+    {
+      "fieldPath": "total_discount",
+      "nativeDataType": "NUMBER",
+      "nullable": false
     }
   ],
+  "matchingCount": null,
+  "offset": 0,
+  "remainingCount": 0,
+  "returned": 4,
+  "totalFields": 4,
   "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
 }

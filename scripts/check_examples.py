@@ -28,7 +28,7 @@ CHANGE = "ALTER TABLE analytics.public.fct_orders DROP COLUMN discount_amount"
 async def main() -> int:
     expected_path = ROOT / "examples" / "impact.json"
     if not expected_path.exists():
-        print("examples/impact.json is missing -- run scripts/make_fixtures.py")
+        print("examples/impact.json is missing -- run: blast-radius demo --out examples/")
         return 1
     expected = json.loads(expected_path.read_text(encoding="utf-8"))
 

@@ -69,7 +69,7 @@ Everything comes from the [DataHub MCP Server](https://docs.datahub.com/docs/fea
 | `get_entities` | ownership, domain and display names for everything found |
 | `list_schema_fields` | detect a same-named column propagated downstream |
 | `get_dataset_queries` | the real SQL that proves or clears each asset |
-| `get_me` | connectivity check in `blast-radius doctor` |
+| `get_me` | connectivity check in `blast-radius doctor` (DataHub Cloud only) |
 | deprecation / tag / document tools | optional `--write-back` (needs `TOOLS_IS_MUTATION_ENABLED=true`) |
 
 Tool **argument names are discovered from each tool's `inputSchema`** at connect
@@ -160,15 +160,23 @@ want the summary, a local LM Studio endpoint is the default.
 - **Expand/contract rollout.** The report's rollout order is the safe sequence for
   the specific operation (expand → migrate → verify → contract), not generic
   advice.
-- **Fixtures are the test oracle.** `scripts/make_fixtures.py` drives the real
-  pipeline against a scripted MCP session that returns DataHub-shaped payloads, and
-  writes `fixtures/` through the same hashing path a live `--record` run uses — so
-  the demo and a live run exercise identical code. `pytest` replays them: 50 tests,
+- **Fixtures are recorded from a real DataHub.** `fixtures/` contains the actual
+  MCP responses from a DataHub Core 1.7.0 instance seeded by
+  `scripts/seed_datahub.py`. `blast-radius demo` replays them and produces
+  byte-identical findings to the live run, and `pytest` asserts on them: 50 tests,
   no network.
+- **The adaptive layer is not theoretical.** Against the real server, `search`
+  rejected the `filters` argument; the client parsed the rejected parameter out of
+  the error, retried without it, and the run completed with a warning in the
+  report. That is the mechanism working, recorded in `examples/impact-report.md`.
 
 ```bash
-pytest -q                        # 50 passed
-python scripts/make_fixtures.py  # regenerate fixtures + examples/
+pytest -q                          # 50 passed
+python scripts/check_examples.py   # fixtures still reproduce examples/
+
+# re-record against your own DataHub
+python scripts/seed_datahub.py --gms http://localhost:8080
+blast-radius plan --change examples/migration.sql --depth 2 --record
 ```
 
 ## Layout
@@ -184,7 +192,8 @@ blastradius/
   llm.py        optional prose summary (any OpenAI-compatible endpoint)
   writeback.py  optional DataHub annotations
   cli.py        plan / demo / doctor
-fixtures/       recorded MCP responses (demo + tests)
+scripts/        seed a local DataHub with the demo warehouse; example-drift guard
+fixtures/       MCP responses recorded from a real DataHub Core instance
 examples/       generated report, patches and notify list
 ```
 

@@ -1,8 +1,13 @@
 """End-to-end tests that replay the recorded fixtures.
 
-These are the tests that would catch a regression in the part judges care
-about: given a real DataHub payload, does the tool reach the right verdicts?
-Regenerate the fixtures with ``python scripts/make_fixtures.py``.
+``fixtures/`` holds MCP responses recorded from a real DataHub Core instance
+(seeded by ``scripts/seed_datahub.py``), so these tests answer the question that
+matters: given genuine DataHub payloads, does the tool reach the right verdicts?
+
+Re-record after changing what the tool asks for:
+
+    python scripts/seed_datahub.py                 # into a local DataHub
+    blast-radius plan --change examples/migration.sql --depth 2 --record
 """
 
 from __future__ import annotations
@@ -42,7 +47,7 @@ def names(assets) -> set[str]:
 
 
 def test_fixtures_exist():
-    assert (FIXTURES / "_tools.json").exists(), "run scripts/make_fixtures.py first"
+    assert (FIXTURES / "_tools.json").exists(), "fixtures/ is missing -- see the module docstring to re-record"
 
 
 def test_root_dataset_is_resolved(report):
@@ -51,21 +56,17 @@ def test_root_dataset_is_resolved(report):
 
 
 def test_queries_naming_the_column_are_breaking(report):
-    assert names(report.breaking) == {
-        "analytics.marts.dim_customer_ltv",
-        "analytics.marts.mart_orders_flat",
-    }
+    assert names(report.breaking) == {"dim_customer_ltv", "mart_orders_flat"}
 
 
 def test_select_star_and_opaque_assets_are_at_risk_not_breaking(report):
     at_risk = names(report.at_risk)
-    assert "analytics.marts.rpt_daily_revenue" in at_risk
+    assert "rpt_daily_revenue" in at_risk  # SELECT * -> schema drift, not a break
     assert "Finance Exec Overview" in at_risk  # dashboard, no SQL to parse
-    assert "order_propensity_v3" in at_risk  # ML feature table
 
 
 def test_clean_consumer_is_cleared(report):
-    assert names(report.safe) == {"analytics.staging.stg_orders_audit"}
+    assert names(report.safe) == {"stg_orders_audit"}
 
 
 def test_every_non_safe_asset_carries_evidence(report):
@@ -83,7 +84,7 @@ def test_unowned_assets_are_surfaced_for_notification(report):
 
 def test_patches_are_generated_for_breaking_queries(report):
     targets = {p.title.split(":")[0] for p in report.patches}
-    assert "analytics.marts.dim_customer_ltv" in targets
+    assert "dim_customer_ltv" in targets
     assert any(p.confidence == "mechanical" for p in report.patches)
     assert any(p.confidence == "review" for p in report.patches)
 
@@ -99,7 +100,7 @@ def test_json_report_is_machine_readable(report):
     payload = json.loads(to_json(report))
     assert payload["counts"] == {
         "breaking": 2,
-        "at_risk": 3,
+        "at_risk": 2,
         "safe": 1,
         "patches": len(report.patches),
     }

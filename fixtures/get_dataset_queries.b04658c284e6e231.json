@@ -1,0 +1,26 @@
+{
+  "count": 1,
+  "queries": [
+    {
+      "properties": {
+        "description": "Populates analytics.marts.dim_customer_ltv",
+        "lastModified": {
+          "actor": "urn:li:corpuser:datahub"
+        },
+        "name": "ltv-rollup",
+        "source": "MANUAL",
+        "statement": {
+          "language": "SQL",
+          "value": "SELECT o.customer_id,\n       COUNT(*) AS orders,\n       SUM(o.discount_amount) AS total_discount,\n       SUM(o.net_amount) AS ltv\nFROM analytics.public.fct_orders o\nGROUP BY o.customer_id"
+        }
+      },
+      "subjects": [
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)",
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+      ],
+      "urn": "urn:li:query:ltv-rollup"
+    }
+  ],
+  "start": 0,
+  "total": 1
+}

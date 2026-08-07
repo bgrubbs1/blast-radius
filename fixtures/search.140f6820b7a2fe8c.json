@@ -1,0 +1,103 @@
+{
+  "count": 25,
+  "facets": [
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "DATASET"
+        }
+      ],
+      "displayName": "Type\u241eSub Type",
+      "field": "_entityType\u241etypeNames"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "DATASET"
+        },
+        {
+          "count": 0,
+          "value": "DASHBOARD"
+        },
+        {
+          "count": 0,
+          "value": "CORP_USER"
+        }
+      ],
+      "displayName": "Type",
+      "field": "_entityType"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "PROD"
+        }
+      ],
+      "displayName": "Environment",
+      "field": "origin"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "urn:li:corpuser:sam.okafor"
+        }
+      ],
+      "displayName": "Owned By",
+      "field": "owners"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "urn:li:dataPlatform:snowflake"
+        }
+      ],
+      "displayName": "Platform",
+      "field": "platform"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 0,
+          "value": "true"
+        }
+      ],
+      "displayName": "removed",
+      "field": "removed"
+    },
+    {
+      "aggregations": [
+        {
+          "count": 1,
+          "value": "DATASET"
+        },
+        {
+          "count": 0,
+          "value": "CORP_USER"
+        },
+        {
+          "count": 0,
+          "value": "DASHBOARD"
+        }
+      ],
+      "displayName": "Type",
+      "field": "entity"
+    }
+  ],
+  "searchResults": [
+    {
+      "entity": {
+        "properties": {
+          "name": "fct_orders"
+        },
+        "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)"
+      }
+    }
+  ],
+  "start": 0,
+  "total": 1
+}

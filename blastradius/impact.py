@@ -34,6 +34,30 @@ from .models import (
 # lineage alone.
 INSPECTABLE = {"dataset"}
 
+# Entity types that are actually *consumers* of data. A lineage payload also
+# carries the owners, domains, platforms and tags of everything it returns; those
+# are attributes of an asset, not assets that break, and reporting them as
+# impacted would be noise a reviewer has to filter by hand.
+ASSET_ENTITY_TYPES = {
+    "dataset",
+    "dashboard",
+    "chart",
+    "notebook",
+    "dataJob",
+    "dataFlow",
+    "mlModel",
+    "mlModelGroup",
+    "mlFeature",
+    "mlFeatureTable",
+    "mlPrimaryKey",
+    "dataProduct",
+    "container",
+}
+
+
+def is_asset(urn: str) -> bool:
+    return extract.entity_type(urn) in ASSET_ENTITY_TYPES
+
 
 async def resolve_dataset(hub: DataHubMCP, table: str) -> str | None:
     """Find the dataset URN for a (possibly qualified) table name."""
@@ -74,7 +98,7 @@ def _lineage_hops(payload: object, root_urn: str) -> dict[str, int]:
             urn = urn.get("urn")
         if not isinstance(urn, str) or not urn.startswith("urn:li:"):
             continue
-        if urn == root_urn:
+        if urn == root_urn or not is_asset(urn):
             continue
         distance = 1
         for key in ("degree", "hops", "distance", "hop", "numHops"):
@@ -84,10 +108,10 @@ def _lineage_hops(payload: object, root_urn: str) -> dict[str, int]:
                 break
         hops[urn] = min(hops.get(urn, distance), distance)
 
+    # Catch assets the structured walk missed (payload shapes vary by version),
+    # but only real assets -- never the owners/domains/platforms they carry.
     for urn in extract.all_urns(payload):
-        if urn == root_urn or urn in hops:
-            continue
-        if urn.startswith("urn:li:dataPlatform:") or urn.startswith("urn:li:corp"):
+        if urn == root_urn or urn in hops or not is_asset(urn):
             continue
         hops[urn] = 1
     return hops

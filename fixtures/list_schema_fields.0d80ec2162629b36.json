@@ -1,17 +1,25 @@
 {
   "fields": [
     {
-      "fieldPath": "order_id",
-      "type": "STRING"
+      "fieldPath": "customer_id",
+      "nativeDataType": "STRING",
+      "nullable": false
     },
     {
-      "fieldPath": "customer_id",
-      "type": "STRING"
+      "fieldPath": "order_id",
+      "nativeDataType": "STRING",
+      "nullable": false
     },
     {
       "fieldPath": "total",
-      "type": "STRING"
+      "nativeDataType": "NUMBER",
+      "nullable": false
     }
   ],
+  "matchingCount": null,
+  "offset": 0,
+  "remainingCount": 0,
+  "returned": 3,
+  "totalFields": 3,
   "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)"
 }

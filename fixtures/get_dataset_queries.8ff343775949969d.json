@@ -1,9 +1,0 @@
-{
-  "queries": [
-    {
-      "statement": "SELECT o.customer_id,\n       COUNT(*) AS orders,\n       SUM(o.discount_amount) AS total_discount,\n       SUM(o.net_amount) AS ltv\nFROM analytics.public.fct_orders o\nGROUP BY o.customer_id",
-      "urn": "urn:li:query:ltv-rollup"
-    }
-  ],
-  "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)"
-}
