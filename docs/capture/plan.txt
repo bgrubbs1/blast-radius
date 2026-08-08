@@ -1,24 +1,23 @@
 change: DROP COLUMN analytics.public.fct_orders.discount_amount
 
-────────────────── blast radius — DROP COLUMN analytics.public.fct_orders.discount_amount ───────────────────
-verdict    asset                  type          hops  owner              why                                 
-BREAKING   dim_customer_ltv       dataset          1  maya.iyer          a query on this asset references    
-                                                                         analytics.public.fct_orders.discount
-                                                                         _amount — `o.discount_amount`       
-BREAKING   mart_orders_flat       dataset          1  sam.okafor         a query on this asset references    
-                                                                         analytics.public.fct_orders.discount
-                                                                         _amount — `discount_amount`         
-AT RISK    Finance Exec Overview  dashboard        1  (unowned)          dashboard consuming the change --   
-                                                                         its definition lives outside        
-                                                                         DataHub's SQL index, so a human must
-                                                                         confirm                             
-AT RISK    rpt_daily_revenue      dataset          1  finance-analytics  exposes a column named              
-                                                                         'discount_amount' of its own --     
-                                                                         likely propagated                   
-safe       stg_orders_audit       dataset          1  maya.iyer          1 indexed query parsed; none        
-                                                                         reference discount_amount           
+────────────────── blast radius — DROP COLUMN analytics.public.fct_orders.discount_amount ──────────────────
+verdict    asset                  type          hops  owner              why                                
+BREAKING   dim_customer_ltv       dataset          1  maya.iyer          a query on this asset references   
+                                                                         analytics.public.fct_orders.discoun
+                                                                         t_amount — `o.discount_amount`     
+BREAKING   mart_orders_flat       dataset          1  sam.okafor         a query on this asset references   
+                                                                         analytics.public.fct_orders.discoun
+                                                                         t_amount — `discount_amount`       
+AT RISK    Finance Exec Overview  dashboard        1  (unowned)          dashboard consuming the change --  
+                                                                         its definition lives outside       
+                                                                         DataHub's SQL index, so a human    
+                                                                         must confirm                       
+AT RISK    rpt_daily_revenue      dataset          1  finance-analytics  exposes a column named             
+                                                                         'discount_amount' of its own --    
+                                                                         likely propagated                  
+safe       stg_orders_audit       dataset          1  maya.iyer          1 indexed query parsed; none       
+                                                                         reference discount_amount          
 
 2 breaking · 2 at risk · 1 safe · 3 patches
-warning: search: server rejected filters -- retried without
 
 wrote out-live/impact-report.md, impact.json, patches/, notify.md
