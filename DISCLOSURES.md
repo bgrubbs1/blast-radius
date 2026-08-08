@@ -27,7 +27,7 @@ process via `uvx` and is not vendored or modified.
 
 ## AI assistance
 
-This project was written with AI coding assistance (Claude). The design,
+This project was written with AI coding assistance (Claude and Codex). The design,
 architecture and verification approach are the author's; all generated code was
 reviewed, and correctness is demonstrated by the 57-test suite and by the
 end-to-end fixtures in `fixtures/`, which replay DataHub-shaped MCP payloads
