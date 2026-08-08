@@ -72,9 +72,12 @@ Everything comes from the [DataHub MCP Server](https://docs.datahub.com/docs/fea
 | `get_me` | connectivity check in `blast-radius doctor` (DataHub Cloud only) |
 | deprecation / tag / document tools | optional `--write-back` (needs `TOOLS_IS_MUTATION_ENABLED=true`) |
 
-Tool **argument names are discovered from each tool's `inputSchema`** at connect
+Tool **argument names are discovered from each tool's input schema** at connect
 time rather than hardcoded, so a server release that renames `max_hops` to `hops`
-degrades to a warning instead of a crash.
+degrades to a warning instead of a crash. `mcp` 2.0 exposes that schema as
+`input_schema`; reading only the wire's camelCase `inputSchema` returns nothing and
+leaves the client guessing argument names, which is exactly the bug fixed in
+`357962b`. Both spellings are now tried, newest first.
 
 ## Install
 
