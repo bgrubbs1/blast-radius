@@ -129,30 +129,30 @@ def build_scenes() -> list[Scene]:
             "__title__",
             [
                 "Blast Radius",
-                "Know what a schema change breaks — before you ship it.",
+                "One DROP COLUMN → 2 breaking · 2 at risk · 1 safe · 3 patches",
                 "Build with DataHub: The Agent Hackathon",
             ],
-            hold_s=4.0,
+            hold_s=3.0,
         ),
         Scene(
-            "1 — the catalog is live: DataHub Core 1.7.0, reached over the DataHub MCP Server",
-            ["$ blast-radius doctor", ""] + read_capture("doctor.txt"),
-            type_s=2.0,
-            hold_s=5.0,
-        ),
-        Scene(
-            "2 — the proposed change: one column, on a fact table with consumers",
+            "1 — the proposed change: one column, on a fact table with consumers",
             ["$ cat examples/migration.sql", ""]
             + read_capture("../../examples/migration.sql")[-1:],
             type_s=0.8,
-            hold_s=3.5,
+            hold_s=2.2,
         ),
         Scene(
-            "3 — what actually breaks. Every verdict cites evidence from DataHub's own query index",
+            "2 — what actually breaks. Every verdict cites evidence from DataHub's own query index",
             ["$ blast-radius plan --change examples/migration.sql --depth 2", ""]
             + read_capture("plan.txt", limit=26),
-            type_s=4.5,
-            hold_s=9.0,
+            type_s=3.0,
+            hold_s=8.0,
+        ),
+        Scene(
+            "3 — proof, not a mock: DataHub Core 1.7.0 reached through the official MCP Server",
+            ["$ blast-radius doctor", ""] + read_capture("doctor.txt"),
+            type_s=1.5,
+            hold_s=4.0,
         ),
         Scene(
             "4 — BREAKING means a query names the column. AT RISK means unproven, never 'safe'",
@@ -199,7 +199,7 @@ def build_scenes() -> list[Scene]:
             hold_s=4.5,
         ),
         Scene(
-            "10 — verdicts are deterministic, so they are testable: 50 tests replay real MCP payloads",
+            "10 — verdicts are deterministic, so they are testable: 57 tests replay real MCP payloads",
             ["$ pytest -q", ""] + read_capture("tests.txt"),
             type_s=1.0,
             hold_s=4.0,

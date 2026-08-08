@@ -11,6 +11,10 @@ on:
       - "migrations/**/*.sql"
       - "models/**/*.sql"
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   blast-radius:
     runs-on: ubuntu-latest
@@ -28,42 +32,85 @@ jobs:
       - name: Install blast-radius
         run: pip install .
 
-      - name: Find the changed migration
+      - name: Find changed migrations and models
         id: changed
         run: |
-          file=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" \
-                 -- 'migrations/**/*.sql' 'models/**/*.sql' | head -1)
-          echo "file=$file" >> "$GITHUB_OUTPUT"
-          if [ -z "$file" ]; then echo "no migration in this PR"; fi
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" \
+            -- 'migrations/**/*.sql' 'models/**/*.sql' > changed-files.txt
+          if [ -s changed-files.txt ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "any=false" >> "$GITHUB_OUTPUT"
+            echo "no migration or model change in this PR"
+          fi
 
-      - name: Analyse blast radius
-        if: steps.changed.outputs.file != ''
+      - name: Analyse every blast radius
+        if: steps.changed.outputs.any == 'true'
         env:
           DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
           DATAHUB_GMS_TOKEN: ${{ secrets.DATAHUB_GMS_TOKEN }}
         run: |
-          blast-radius plan \
-            --change "${{ steps.changed.outputs.file }}" \
-            --depth 3 \
-            --out out/ \
-            --fail-on breaking
+          status=0
+          index=0
+          while IFS= read -r file; do
+            index=$((index + 1))
+            change="$file"
+            if [[ "$file" == models/* ]]; then
+              change="$RUNNER_TEMP/blast-radius-$index.diff"
+              git diff "origin/${{ github.base_ref }}...HEAD" -- "$file" > "$change"
+            elif [ ! -f "$file" ]; then
+              echo "skipping deleted migration: $file"
+              continue
+            fi
+
+            set +e
+            blast-radius plan \
+              --change "$change" \
+              --depth 3 \
+              --out "out/$index" \
+              --fail-on breaking
+            code=$?
+            set -e
+
+            if [ "$code" -eq 1 ]; then
+              exit 1
+            fi
+            if [ "$code" -eq 2 ]; then
+              status=2
+            fi
+          done < changed-files.txt
+          exit "$status"
 
       - name: Upload the impact report
-        if: always() && steps.changed.outputs.file != ''
+        if: always() && steps.changed.outputs.any == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: blast-radius-report
           path: out/
 
-      - name: Comment the report on the PR
-        if: failure() && steps.changed.outputs.file != ''
+      - name: Comment the reports on the PR
+        if: failure() && steps.changed.outputs.any == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const path = 'out/impact-report.md';
-            if (!fs.existsSync(path)) return;
-            const body = fs.readFileSync(path, 'utf8').slice(0, 65000);
+            const path = require('path');
+            const reports = [];
+            function walk(directory) {
+              if (!fs.existsSync(directory)) return;
+              for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+                const candidate = path.join(directory, entry.name);
+                if (entry.isDirectory()) walk(candidate);
+                if (entry.isFile() && entry.name === 'impact-report.md') reports.push(candidate);
+              }
+            }
+            walk('out');
+            if (!reports.length) return;
+            const body = reports
+              .sort()
+              .map(report => fs.readFileSync(report, 'utf8'))
+              .join('\n\n---\n\n')
+              .slice(0, 65000);
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

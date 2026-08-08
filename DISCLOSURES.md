@@ -20,6 +20,7 @@ Standard, unmodified, installed from PyPI (see `pyproject.toml`):
 | `rich` | MIT | terminal rendering |
 | `httpx` | BSD-3-Clause | HTTP call to the optional LLM endpoint |
 | `pytest` (dev) | MIT | tests |
+| `Pillow` (video extra) | HPND | renders the optional demo video |
 
 The DataHub MCP Server itself (`mcp-server-datahub`) is run as an external
 process via `uvx` and is not vendored or modified.
@@ -28,7 +29,7 @@ process via `uvx` and is not vendored or modified.
 
 This project was written with AI coding assistance (Claude). The design,
 architecture and verification approach are the author's; all generated code was
-reviewed, and correctness is demonstrated by the 50-test suite and by the
+reviewed, and correctness is demonstrated by the 57-test suite and by the
 end-to-end fixtures in `fixtures/`, which replay DataHub-shaped MCP payloads
 through the full pipeline.
 

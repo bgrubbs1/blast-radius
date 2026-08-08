@@ -32,7 +32,7 @@ for start, end, cap in timeline:
 # Which scenes become gallery stills, and the output name for each.
 WANT = [
     ("__title__", "0-title.jpg", 0),      # first title scene
-    ("3 ", "1-verdicts.jpg", None),
+    ("2 ", "1-verdicts.jpg", None),
     ("6 ", "2-notify-rollout.jpg", None),
     ("8 ", "3-patch.jpg", None),
 ]

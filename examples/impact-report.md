@@ -5,7 +5,7 @@
 - **Change**: `DROP COLUMN analytics.public.fct_orders.discount_amount`
 - **Dataset**: `urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)`
 - **Downstream assets examined**: 5 (2 breaking, 2 at risk, 1 safe)
-- **Generated**: 2026-08-08 00:37 UTC by [blast-radius](https://github.com/bgrubbs1/blast-radius)
+- **Generated**: 2026-08-08 19:50 UTC by [blast-radius](https://github.com/bgrubbs1/blast-radius)
 
 ## Breaking
 
@@ -30,7 +30,7 @@
 
 ## Rollout order
 
-1. **Announce.** Mark `analytics.public.fct_orders.discount_amount` deprecated in DataHub so the catalog warns anyone who finds it next (`blast-radius plan ... --write-back` does this for you).
+1. **Announce.** Append a warning to `analytics.public.fct_orders.discount_amount` in DataHub and save a linked impact analysis (`blast-radius plan ... --write-back` does this for you).
 2. **Migrate the 2 breaking consumers:** `dim_customer_ltv`, `mart_orders_flat`. Patches for the queries we could rewrite are in `patches/`.
 3. **Get eyes on 2 unproven assets.** These are downstream but we could not prove a reference — ask the owners listed below to confirm before you proceed.
 4. **Re-run and require zero breaking.** `blast-radius plan --change <ddl> --fail-on breaking` in CI; when it exits 0, nothing indexed in DataHub still depends on the old shape.

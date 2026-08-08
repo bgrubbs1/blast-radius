@@ -1,7 +1,7 @@
 """Thin, defensive client for the DataHub MCP Server.
 
 Everything Blast Radius knows about your data platform arrives through this
-file, and it arrives over MCP -- ``uvx mcp-server-datahub@latest`` talking to
+file, and it arrives over MCP -- ``uvx mcp-server-datahub@0.6.0`` talking to
 either DataHub Core or DataHub Cloud.
 
 Two design decisions worth knowing about:
@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_GMS_URL = "http://localhost:8080"
-MCP_PACKAGE = "mcp-server-datahub@latest"
+MCP_PACKAGE = "mcp-server-datahub@0.6.0"
 
 # Logical call -> candidate parameter names, most likely first.
 _ARG_ALIASES: dict[str, tuple[str, ...]] = {

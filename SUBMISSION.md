@@ -11,17 +11,17 @@ Everything the submission form asks for, ready to paste. Deadline **August 10,
 
 ## Elevator pitch (200 char limit)
 
-> Proves which downstream assets a schema change actually breaks — from the
-> queries DataHub already indexed — then writes the migration patches and names
-> the owners to notify.
+> Before you drop a column, Blast Radius uses DataHub's indexed SQL to prove
+> what breaks, generate reviewable patches, and identify the owners who need to
+> act.
 
-(197 characters.)
+(157 characters.)
 
 ## Challenge category
 
-**Agents That Do Real Work** — with a strong secondary fit for *Metadata-Aware
-Code Generation & Development*, since the agent emits migration patches derived
-from catalog metadata. Submit under one; mention the other in the description.
+**Metadata-Aware Code Generation & Development** — the agent reads DataHub's
+real schemas, lineage, indexed queries and ownership, then emits reviewable SQL
+migration patches and a CI-ready report for a pull request.
 
 ## Repository
 
@@ -30,19 +30,29 @@ from catalog metadata. Submit under one; mention the other in the description.
 
 ## Demo video
 
-`docs/demo.mp4` in the repo → upload to YouTube as **public** (not "unlisted
-only" — the rules require a public link) and paste the URL. Under 3 minutes.
+Public, 78 seconds: <https://youtu.be/RT65Dc0qxLA>. Source video:
+`docs/demo.mp4`.
 
 ## Text description
 
 ### What it does
 
-You are about to drop a column. Somewhere downstream there is a dashboard the
-finance team opens every Monday, a dbt model three hops away, and an ML feature
-table nobody owns. DataHub already knows about all of them.
+You are about to drop a column. Downstream are finance models, a `SELECT *`
+report whose shape will drift, and an unowned executive dashboard. DataHub knows
+they are connected.
+
+In the included DataHub Core 1.7.0 run, Blast Radius made 11 MCP calls and
+examined five downstream assets: **2 BREAKING, 2 AT RISK, 1 SAFE**. It generated
+three SQL patches, four notification targets, a safe rollout order, and a
+PR-blocking exit code.
 
 Blast Radius takes a proposed change — DDL or a dbt model diff — and answers the
 question a lineage graph does not: **what breaks?**
+
+It turns that change into a multi-step plan: resolve the dataset, traverse
+lineage, retrieve query evidence, classify impact, generate patches, route
+owners, and write warnings back to DataHub. The decisions are deterministic;
+the autonomy is in gathering and acting on catalog context.
 
 1. Resolves the table to a dataset URN (`search`).
 2. Walks downstream lineage (`get_lineage`), collecting datasets, dashboards,
@@ -63,19 +73,19 @@ question a lineage graph does not: **what breaks?**
 6. Names who to tell (`get_entities` → owners, domains), grouped worst-first,
    with an explicit `(unowned)` bucket because an unowned breaking asset is its
    own finding.
-7. Optionally writes back to DataHub (`--write-back`): a deprecation note on the
-   column and a tag on impacted assets, so the next person to open that dataset
-   sees the warning.
+7. Optionally writes back to DataHub (`--write-back`): a warning appended to the
+   changed column's description and a linked analysis document, so the next
+   person or agent inherits the result.
 
 `--fail-on breaking` exits non-zero, so a pull request can be gated on it. A
 ready GitHub Action is included that comments the report on the PR.
 
 ### How DataHub is used
 
-Entirely through the **DataHub MCP Server** (`uvx mcp-server-datahub@latest`),
+Entirely through the **DataHub MCP Server** (`uvx mcp-server-datahub@0.6.0`),
 against DataHub Core or DataHub Cloud: `search`, `get_lineage`, `get_entities`,
-`list_schema_fields`, `get_dataset_queries`, and the deprecation/tag/document
-mutation tools for write-back. The catalog is not a nice-to-have here — the
+`list_schema_fields`, `get_dataset_queries`, `update_description`, and
+`save_document` for write-back. The catalog is not a nice-to-have here — the
 column-level evidence *is* DataHub's query index.
 
 ### What makes it different
@@ -140,7 +150,7 @@ names are fictional.
 git clone https://github.com/bgrubbs1/blast-radius && cd blast-radius
 pip install -e ".[dev]"
 blast-radius demo --out out/     # replays MCP responses recorded from a real DataHub
-pytest -q                        # 50 passed
+pytest -q                        # 57 passed
 ```
 
 Against your own DataHub:
@@ -173,14 +183,13 @@ verification. It is not claimed.
 
 - [x] Public repo, Apache 2.0 licensed
 - [x] Full setup + run instructions in the README
-- [x] Uses DataHub via the MCP Server (6 tools + mutation write-back)
+- [x] Uses DataHub via the MCP Server (5 read tools + 2 mutation tools)
 - [x] Newly created during the submission period (see `DISCLOSURES.md`)
 - [x] Sample outputs in `examples/`
 - [x] Verified end-to-end against DataHub Core 1.7.0, not only fixtures
 - [x] `examples/` regenerated after `357962b` so recorded tool calls show the
       corrected arguments (`filter`, `limit`, `count`)
 - [x] GitHub repository verified public; GitHub detects the Apache-2.0 license
-- [ ] **Push the local submission-ready commits to `origin/main`** so judges see
-      the corrected examples, recaptured demo, gallery, and README
-- [ ] **Demo video uploaded to YouTube as public** and the link pasted in the form
-- [ ] Form submitted before Aug 10, 5:00 PM EDT
+- [x] Submission-ready commits pushed to `origin/main`
+- [x] Demo video uploaded publicly: <https://youtu.be/RT65Dc0qxLA>
+- [x] Submitted on Devpost: <https://devpost.com/software/blast-radius-ked6l8>

@@ -57,8 +57,8 @@ def rollout_plan(report: ImpactReport) -> list[str]:
         )
     elif change.operation is Operation.DROP_COLUMN:
         steps.append(
-            f"**Announce.** Mark `{change.table}.{change.column}` deprecated in "
-            "DataHub so the catalog warns anyone who finds it next "
+            f"**Announce.** Append a warning to `{change.table}.{change.column}` "
+            "in DataHub and save a linked impact analysis "
             "(`blast-radius plan ... --write-back` does this for you)."
         )
     elif change.operation is Operation.RETYPE_COLUMN:

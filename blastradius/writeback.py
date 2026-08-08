@@ -1,30 +1,19 @@
 """Write the finding back into DataHub, so the catalog learns from the review.
 
-A report in a PR is read once. A deprecation notice on the column is read by
-everyone who opens that dataset afterwards -- which is the point of having a
-catalog. This module is opt-in (``--write-back``) and needs the MCP server
-started with ``TOOLS_IS_MUTATION_ENABLED=true``.
+A report in a PR is read once. A warning on the changed column and a linked
+analysis document are visible to everyone who opens that dataset afterwards --
+which is the point of having a catalog. This module is opt-in (``--write-back``)
+and needs the MCP server started with ``TOOLS_IS_MUTATION_ENABLED=true``.
 
-We only ever *add* context: a deprecation note on the changed column, a tag on
-affected downstream assets, and a link back to the report. Nothing is deleted
-and no ownership is reassigned.
+We only ever *add* context: an appended warning on the changed column and a
+standalone analysis document linked to the affected assets. Nothing is deleted,
+replaced, or reassigned.
 """
 
 from __future__ import annotations
 
 from .datahub import DataHubMCP
 from .models import ImpactReport, Operation, Verdict
-
-TAG = "blast-radius:impacted"
-
-
-def _find_tool(hub: DataHubMCP, *needles: str) -> str | None:
-    """First exposed tool whose name contains any of ``needles``."""
-    for name in hub.available_tools:
-        lowered = name.lower()
-        if any(needle in lowered for needle in needles):
-            return name
-    return None
 
 
 def _note(report: ImpactReport) -> str:
@@ -47,6 +36,35 @@ def _note(report: ImpactReport) -> str:
     )
 
 
+def _analysis(report: ImpactReport) -> str:
+    affected = [asset for asset in report.assets if asset.verdict is not Verdict.SAFE]
+    lines = [
+        "## Proposed change",
+        "",
+        f"`{report.change.describe()}`",
+        "",
+        "## Impact",
+        "",
+        f"- {len(report.breaking)} breaking",
+        f"- {len(report.at_risk)} at risk",
+        f"- {len(report.safe)} cleared",
+        "",
+        "## Affected assets",
+        "",
+    ]
+    lines.extend(f"- **{asset.verdict.value}** — `{asset.name}`" for asset in affected)
+    lines.extend(["", _note(report)])
+    return "\n".join(lines)
+
+
+def _succeeded(payload: object) -> bool:
+    if payload is None:
+        return False
+    if isinstance(payload, dict) and payload.get("success") is False:
+        return False
+    return True
+
+
 async def write_back(hub: DataHubMCP, report: ImpactReport) -> list[str]:
     """Annotate DataHub with the review outcome. Returns human-readable results."""
     results: list[str] = []
@@ -55,41 +73,47 @@ async def write_back(hub: DataHubMCP, report: ImpactReport) -> list[str]:
     if not report.root_urn:
         return ["write-back skipped: the changed dataset was never resolved"]
 
-    deprecate = _find_tool(hub, "deprecat")
-    if deprecate:
-        payload = await hub.call(
-            deprecate,
-            {"urn": report.root_urn, "deprecated": True, "note": _note(report)},
-        )
-        results.append(
-            f"{deprecate}: {'ok' if payload is not None else 'failed (see warnings)'} "
-            f"on {report.root_urn}"
-        )
+    description_tool = hub.has_tool("update_description")
+    if description_tool:
+        description_args = {
+            "entity_urn": report.root_urn,
+            "operation": "append",
+            "description": f"\n\n> **Blast Radius warning:** {_note(report)}",
+        }
+        if report.change.column:
+            description_args["column_path"] = report.change.column
+        payload = await hub.call(description_tool, description_args)
+        target = report.change.column or report.change.table
+        if _succeeded(payload):
+            results.append(
+                f"{description_tool}: appended schema-change warning to {target}"
+            )
+        else:
+            results.append(f"{description_tool}: failed (see warnings)")
     else:
-        results.append(
-            "no deprecation tool exposed -- upgrade mcp-server-datahub for write-back"
-        )
+        results.append("update_description is not exposed -- column warning skipped")
 
-    tag_tool = _find_tool(hub, "tag")
-    if tag_tool:
-        targets = [a.urn for a in report.assets if a.verdict is not Verdict.SAFE][:25]
-        tagged = 0
-        for urn in targets:
-            if await hub.call(tag_tool, {"urn": urn, "tags": [TAG]}) is not None:
-                tagged += 1
-        results.append(f"{tag_tool}: tagged {tagged}/{len(targets)} impacted assets")
-
-    doc_tool = _find_tool(hub, "document")
+    doc_tool = hub.has_tool("save_document")
     if doc_tool:
+        related_assets = [report.root_urn]
+        related_assets.extend(
+            asset.urn for asset in report.assets if asset.verdict is not Verdict.SAFE
+        )
+        related_assets = list(dict.fromkeys(related_assets))[:25]
         payload = await hub.call(
             doc_tool,
             {
-                "urn": report.root_urn,
+                "document_type": "Analysis",
                 "title": f"Blast radius: {report.change.describe()}",
-                "content": report.summary or _note(report),
+                "content": _analysis(report),
+                "related_assets": related_assets,
             },
         )
-        if payload is not None:
-            results.append(f"{doc_tool}: attached the impact summary")
+        if _succeeded(payload):
+            results.append(f"{doc_tool}: saved linked impact analysis")
+        else:
+            results.append(f"{doc_tool}: failed (see warnings)")
+    else:
+        results.append("save_document is not exposed -- linked analysis skipped")
 
     return results

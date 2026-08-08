@@ -25,3 +25,5 @@ jobs:
       - run: blast-radius demo --out out/
       - name: Recorded DataHub payloads still reproduce the committed verdicts
         run: python scripts/check_examples.py
+      - name: Wheel includes the offline demo fixtures
+        run: python scripts/check_wheel.py

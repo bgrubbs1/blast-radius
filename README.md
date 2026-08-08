@@ -2,11 +2,14 @@
 
 **Know what a schema change breaks — before you ship it.**
 
-You are about to drop a column. Somewhere downstream there is a dashboard that the
-finance team opens every Monday, a dbt model three hops away, and an ML feature
-table nobody owns. DataHub already knows about all of them. Blast Radius asks it,
-proves which ones actually break, tells you who to notify, and writes the
-migration patches.
+You are about to drop a column. Downstream are finance models, a `SELECT *`
+report whose shape will drift, and an unowned executive dashboard. DataHub knows
+they are connected. Blast Radius asks it, proves which ones actually break,
+tells you who to notify, and writes the migration patches.
+
+[Watch the 78-second public demo](https://youtu.be/RT65Dc0qxLA)
+
+[![Blast Radius finds 2 breaking assets, 2 at risk and 1 safe](docs/gallery/1-verdicts.jpg)](https://youtu.be/RT65Dc0qxLA)
 
 ```console
 $ blast-radius plan --change "ALTER TABLE analytics.public.fct_orders DROP COLUMN discount_amount" --fail-on breaking
@@ -17,11 +20,10 @@ verdict   asset                              type          hops owner           
 BREAKING  analytics.marts.dim_customer_ltv   dataset          1 maya.iyer         a query on this asset references … — `o.discount_amount`
 BREAKING  analytics.marts.mart_orders_flat   dataset          1 sam.okafor        a query on this asset references … — `discount_amount`
 AT RISK   analytics.marts.rpt_daily_revenue  dataset          1 finance-analytics exposes a column named 'discount_amount' of its own
-AT RISK   Finance Exec Overview              dashboard        2 finance-analytics dashboard consuming the change — a human must confirm
-AT RISK   order_propensity_v3                mlFeatureTable   2 (unowned)         mlFeatureTable consuming the change — a human must confirm
+AT RISK   Finance Exec Overview              dashboard        1 (unowned)         dashboard consuming the change — a human must confirm
 safe      analytics.staging.stg_orders_audit dataset          1 maya.iyer         1 indexed query parsed; none reference discount_amount
 
-2 breaking · 3 at risk · 1 safe · 3 patches
+2 breaking · 2 at risk · 1 safe · 3 patches
 $ echo $?
 2
 ```
@@ -55,12 +57,13 @@ Opening the lineage tab tells you *what is downstream*. It does not tell you wha
 | **Writes the migration** | Renames are rewritten across every reference (AST, not regex) and keep the old name as an output alias so *their* consumers survive. Drops remove dead projections. |
 | **Refuses to guess** | A column used in a `WHERE`, `JOIN` or `GROUP BY` encodes intent. Those patches come back marked `review` with a `TODO` at the top, never silently "fixed". |
 | **Tells you who to talk to** | Owners and domains, grouped, worst-first — including an explicit `(unowned)` bucket, because an unowned breaking asset is its own finding. |
-| **Feeds the catalog back** | `--write-back` marks the column deprecated in DataHub and tags impacted assets, so the next person to open that dataset sees the warning. |
+| **Feeds the catalog back** | `--write-back` appends a warning to the changed column's description and saves a linked impact-analysis document, so the next person or agent inherits the result. |
 
 ## How DataHub is used
 
 Everything comes from the [DataHub MCP Server](https://docs.datahub.com/docs/features/feature-guides/mcp)
-(`uvx mcp-server-datahub@latest`), against **DataHub Core or DataHub Cloud**:
+(`uvx mcp-server-datahub@0.6.0`, overrideable with `BLAST_RADIUS_MCP_ARGS`),
+against **DataHub Core or DataHub Cloud**:
 
 | MCP tool | What Blast Radius does with it |
 |---|---|
@@ -70,7 +73,7 @@ Everything comes from the [DataHub MCP Server](https://docs.datahub.com/docs/fea
 | `list_schema_fields` | detect a same-named column propagated downstream |
 | `get_dataset_queries` | the real SQL that proves or clears each asset |
 | `get_me` | connectivity check in `blast-radius doctor` (DataHub Cloud only) |
-| deprecation / tag / document tools | optional `--write-back` (needs `TOOLS_IS_MUTATION_ENABLED=true`) |
+| `update_description`, `save_document` | optional `--write-back` (needs `TOOLS_IS_MUTATION_ENABLED=true`) |
 
 Tool **argument names are discovered from each tool's input schema** at connect
 time rather than hardcoded, so a server release that renames `max_hops` to `hops`
@@ -133,7 +136,7 @@ them), `--fail-on breaking|at-risk|never`.
 
 ```yaml
 # .github/workflows/schema-guard.yml
-- run: pip install blast-radius
+- run: pip install .
 - run: blast-radius plan --change migrations/$(git diff --name-only | tail -1) --fail-on breaking --out out/
   env:
     DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
@@ -166,7 +169,7 @@ want the summary, a local LM Studio endpoint is the default.
 - **Fixtures are recorded from a real DataHub.** `fixtures/` contains the actual
   MCP responses from a DataHub Core 1.7.0 instance seeded by
   `scripts/seed_datahub.py`. `blast-radius demo` replays them and produces
-  byte-identical findings to the live run, and `pytest` asserts on them: 50 tests,
+  byte-identical findings to the live run, and `pytest` asserts on them: 57 tests,
   no network.
 - **The adaptive layer is not theoretical.** Against the real server, `search`
   rejected the `filters` argument; the client parsed the rejected parameter out of
@@ -174,7 +177,7 @@ want the summary, a local LM Studio endpoint is the default.
   report. That is the mechanism working, recorded in `examples/impact-report.md`.
 
 ```bash
-pytest -q                          # 50 passed
+pytest -q                          # 57 passed
 python scripts/check_examples.py   # fixtures still reproduce examples/
 
 # re-record against your own DataHub

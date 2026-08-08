@@ -1,8 +1,7 @@
 ## Rollout order
 
-1. **Announce.** Mark `analytics.public.fct_orders.discount_amount` deprecated in DataHub so the catalog warns anyone who finds it next (`blast-radius plan ... --write-back` does this for you).
+1. **Announce.** Append a warning to `analytics.public.fct_orders.discount_amount` in DataHub and save a linked impact analysis (`blast-radius plan ... --write-back` does this for you).
 2. **Migrate the 2 breaking consumers:** `dim_customer_ltv`, `mart_orders_flat`. Patches for the queries we could rewrite are in `patches/`.
 3. **Get eyes on 2 unproven assets.** These are downstream but we could not prove a reference — ask the owners listed below to confirm before you proceed.
 4. **Re-run and require zero breaking.** `blast-radius plan --change <ddl> --fail-on breaking` in CI; when it exits 0, nothing indexed in DataHub still depends on the old shape.
 5. **Contract.** Only now apply the DROP: `ALTER TABLE analytics.public.fct_orders DROP COLUMN discount_amount`
-
