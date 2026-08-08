@@ -108,6 +108,10 @@ blast-radius doctor          # lists the tools the server actually exposes
 `doctor` output tells you exactly what is wrong when something is: no DataHub, no
 token, or no `uvx`.
 
+For live catalogs, read [`PRIVACY.md`](PRIVACY.md) first. The detailed reports
+can contain SQL, schemas, asset and owner identities, and internal URNs. Do not
+connect this public contest checkout or its public CI to employer/customer data.
+
 ## Usage
 
 ```bash
@@ -126,26 +130,24 @@ blast-radius plan --change migration.sql --write-back
 
 # add a prose summary from any OpenAI-compatible endpoint (LM Studio, vLLM, …)
 blast-radius plan --change migration.sql --llm --llm-base-url http://localhost:1234/v1
+
+# a remote endpoint additionally requires informed egress acknowledgement
+blast-radius plan --change migration.sql --llm --llm-provider anthropic --allow-remote-llm
 ```
 
 Useful flags: `--urn` (skip search), `--depth` (lineage hops, default 2),
-`--query-limit`, `--record` (save fixtures from a live run), `--offline` (replay
-them), `--fail-on breaking|at-risk|never`.
+`--query-limit`, `--record` (save raw live responses to an explicit private
+`--fixtures` directory), `--offline` (replay fixtures), and
+`--fail-on breaking|at-risk|never`.
 
 ### In CI
 
-```yaml
-# .github/workflows/schema-guard.yml
-- run: pip install .
-- run: blast-radius plan --change migrations/$(git diff --name-only | tail -1) --fail-on breaking --out out/
-  env:
-    DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
-    DATAHUB_GMS_TOKEN: ${{ secrets.DATAHUB_GMS_TOKEN }}
-- uses: actions/upload-artifact@v4
-  with: { name: blast-radius, path: out/ }
-```
-
-A working copy is in [`.github/workflows/schema-guard.yml`](.github/workflows/schema-guard.yml).
+The checked-in [`.github/workflows/schema-guard.yml`](.github/workflows/schema-guard.yml)
+is safe for this public repository: it analyzes every changed SQL file using
+only the bundled synthetic fixtures, receives no DataHub secrets, and uploads
+only synthetic-catalog output. For a live catalog, run the guard in a private
+repository with protected trusted-code execution and private detailed reports;
+see [`PRIVACY.md`](PRIVACY.md).
 
 ## Where the LLM is — and is not
 
@@ -158,6 +160,11 @@ output, and the model is explicitly forbidden from re-ranking severity.
 This also means the tool works with **no API key and no cloud** — and if you do
 want the summary, a local LM Studio endpoint is the default.
 
+A remote endpoint receives the change, dataset and asset names, owner names,
+lineage hops, evidence details, counts, and patch metadata. Non-loopback use is
+blocked unless `--allow-remote-llm` is present. Confirm the data owner and model
+provider permit that transfer.
+
 ## Design notes
 
 - **Evidence or nothing.** Every non-safe verdict carries an `Evidence` record
@@ -169,7 +176,7 @@ want the summary, a local LM Studio endpoint is the default.
 - **Fixtures are recorded from a real DataHub.** `fixtures/` contains the actual
   MCP responses from a DataHub Core 1.7.0 instance seeded by
   `scripts/seed_datahub.py`. `blast-radius demo` replays them and produces
-  byte-identical findings to the live run, and `pytest` asserts on them: 57 tests,
+  byte-identical findings to the live run, and `pytest` asserts on them: 68 tests,
   no network.
 - **The adaptive layer is not theoretical.** Against the real server, `search`
   rejected the `filters` argument; the client parsed the rejected parameter out of
@@ -177,13 +184,18 @@ want the summary, a local LM Studio endpoint is the default.
   report. That is the mechanism working, recorded in `examples/impact-report.md`.
 
 ```bash
-pytest -q                          # 57 passed
+pytest -q                          # 68 passed
 python scripts/check_examples.py   # fixtures still reproduce examples/
 
-# re-record against your own DataHub
+# re-record the synthetic seed into an ignored local directory
 python scripts/seed_datahub.py --gms http://localhost:8080
-blast-radius plan --change examples/migration.sql --depth 2 --record
+blast-radius plan --change examples/migration.sql --depth 2 --record \
+  --fixtures .private-fixtures/datahub-1.7.0
 ```
+
+Recordings preserve complete decoded MCP payloads, including SQL and owner
+metadata. Never record an employer/customer catalog into `fixtures/`, commit a
+live capture, or publish one without independent sanitization and approval.
 
 ## Layout
 
@@ -201,6 +213,7 @@ blastradius/
 scripts/        seed a local DataHub with the demo warehouse; example-drift guard
 fixtures/       MCP responses recorded from a real DataHub Core instance
 examples/       generated report, patches and notify list
+PRIVACY.md      public/private data boundary and safe live-use rules
 ```
 
 ## Limitations

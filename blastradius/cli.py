@@ -29,6 +29,27 @@ FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 2, 1
 
 
+def _fixture_dir(args: argparse.Namespace, offline: bool) -> Path | None:
+    configured = getattr(args, "fixtures", None)
+    if configured:
+        return Path(configured)
+    return FIXTURES if offline else None
+
+
+def _recording_dir_error(fixtures_dir: Path | None) -> str | None:
+    if fixtures_dir is None:
+        return (
+            "--record requires an explicit --fixtures DIR outside the bundled "
+            "synthetic fixtures"
+        )
+    if fixtures_dir.resolve() == FIXTURES.resolve():
+        return (
+            "refusing to record live DataHub responses into the bundled synthetic "
+            "fixtures; choose an ignored private directory with --fixtures"
+        )
+    return None
+
+
 def _read_change(args: argparse.Namespace, console: Console) -> str:
     if args.change:
         candidate = Path(args.change)
@@ -53,9 +74,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     def add_common(p: argparse.ArgumentParser) -> None:
         p.add_argument("--gms-url", default=None, help=f"DataHub GMS (default {DEFAULT_GMS_URL})")
-        p.add_argument("--token", default=None, help="DataHub personal access token")
         p.add_argument("--frontend", default=None, help="DataHub UI base URL, for links")
-        p.add_argument("--fixtures", default=str(FIXTURES), help="fixture directory")
+        p.add_argument("--fixtures", default=None, help="fixture directory")
 
     plan = sub.add_parser("plan", help="analyse a proposed change")
     add_common(plan)
@@ -70,6 +90,11 @@ def _build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--llm-base-url", default=None, help="OpenAI-compatible endpoint")
     plan.add_argument("--llm-model", default=None)
     plan.add_argument("--llm-provider", choices=["openai", "anthropic"], default="openai")
+    plan.add_argument(
+        "--allow-remote-llm",
+        action="store_true",
+        help="allow catalog metadata to leave the machine for a non-local LLM",
+    )
     plan.add_argument("--write-back", action="store_true", help="annotate DataHub")
     plan.add_argument("--record", action="store_true", help="save MCP responses as fixtures")
     plan.add_argument("--offline", action="store_true", help="replay fixtures only")
@@ -105,13 +130,41 @@ async def _run_plan(args: argparse.Namespace, console: Console) -> int:
         console.print(f"[red]error:[/red] {exc}")
         return EXIT_ERROR
 
+    offline = getattr(args, "offline", False) or args.command == "demo"
+    fixtures_dir = _fixture_dir(args, offline)
+    if getattr(args, "record", False):
+        error = _recording_dir_error(fixtures_dir)
+        if error:
+            console.print(f"[red]error:[/red] {error}")
+            console.print(
+                "recordings can contain full SQL, schemas, URNs, descriptions, "
+                "domains, and owner identities; never commit work-catalog captures"
+            )
+            return EXIT_ERROR
+
+    if getattr(args, "llm", False) and llm.is_remote_endpoint(
+        args.llm_base_url, args.llm_provider
+    ):
+        if not args.allow_remote_llm:
+            console.print(
+                "[red]error:[/red] remote LLM use requires --allow-remote-llm"
+            )
+            console.print(
+                "the request includes the change, dataset, asset names, owner names, "
+                "lineage hops, evidence details, counts, and patch metadata"
+            )
+            return EXIT_ERROR
+        console.print(
+            "[yellow]privacy:[/yellow] sending catalog metadata to "
+            f"{llm.resolved_endpoint(args.llm_base_url, args.llm_provider)}"
+        )
+
     console.print(f"[bold]change:[/bold] {change.describe()}")
 
-    offline = getattr(args, "offline", False) or args.command == "demo"
     async with DataHubMCP(
         gms_url=args.gms_url,
-        token=args.token,
-        fixtures_dir=Path(args.fixtures),
+        token=None,
+        fixtures_dir=fixtures_dir,
         offline=offline,
         record=getattr(args, "record", False),
         mutations=getattr(args, "write_back", False),
@@ -193,7 +246,7 @@ def _write_outputs(result: ImpactReport, out_dir: Path, console: Console) -> Non
 async def _run_doctor(args: argparse.Namespace, console: Console) -> int:
     console.print(f"GMS URL: [bold]{args.gms_url or DEFAULT_GMS_URL}[/bold]")
     try:
-        async with DataHubMCP(gms_url=args.gms_url, token=args.token) as hub:
+        async with DataHubMCP(gms_url=args.gms_url, token=None) as hub:
             tools = hub.available_tools
             console.print(f"MCP server: [green]up[/green] — {len(tools)} tools")
             console.print("tools: " + ", ".join(tools))

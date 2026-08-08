@@ -7,7 +7,8 @@ matters: given genuine DataHub payloads, does the tool reach the right verdicts?
 Re-record after changing what the tool asks for:
 
     python scripts/seed_datahub.py                 # into a local DataHub
-    blast-radius plan --change examples/migration.sql --depth 2 --record
+    blast-radius plan --change examples/migration.sql --depth 2 --record \
+        --fixtures .private-fixtures/datahub-local
 """
 
 from __future__ import annotations

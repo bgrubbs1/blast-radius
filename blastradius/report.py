@@ -42,6 +42,54 @@ def _evidence_line(asset: ImpactedAsset) -> str:
     return text
 
 
+def _single_line(value: object) -> str:
+    return " ".join(str(value).replace("\r", "\n").splitlines()).strip()
+
+
+def _md_text(value: object) -> str:
+    """Render untrusted catalog text without creating Markdown structure."""
+
+    text = _single_line(value).replace("\\", "\\\\")
+    for char in ("`", "*", "_", "[", "]", "<", ">", "#", "|"):
+        text = text.replace(char, f"\\{char}")
+    return text.replace("@", "&#64;")
+
+
+def _md_code(value: object) -> str:
+    """Render one line inside a Markdown code span."""
+
+    return (
+        _single_line(value)
+        .replace("`", "'")
+        .replace("|", "\\|")
+        .replace("@", "&#64;")
+    )
+
+
+def _fenced_block(body: object, language: str = "") -> str:
+    text = str(body).rstrip("\n") or "(empty)"
+    longest = 0
+    run = 0
+    for char in text:
+        if char == "`":
+            run += 1
+            longest = max(longest, run)
+        else:
+            run = 0
+    fence = "`" * max(3, longest + 1)
+    return f"{fence}{language}\n{text}\n{fence}"
+
+
+def _evidence_md(asset: ImpactedAsset) -> str:
+    top = asset.worst_evidence()
+    if not top:
+        return ""
+    text = _md_text(top.detail)
+    if top.snippet:
+        text += f" — `{_md_code(top.snippet)}`"
+    return text
+
+
 def rollout_plan(report: ImpactReport) -> list[str]:
     """Ordered steps that make the change safe to land."""
     change = report.change
@@ -51,29 +99,31 @@ def rollout_plan(report: ImpactReport) -> list[str]:
 
     if change.operation is Operation.RENAME_COLUMN:
         steps.append(
-            f"**Expand.** Add `{change.new_name}` alongside `{change.column}` "
-            f"in `{change.table}` (a view or a generated column is enough). Do not "
+            f"**Expand.** Add `{_md_code(change.new_name)}` alongside "
+            f"`{_md_code(change.column)}` in `{_md_code(change.table)}` "
+            "(a view or a generated column is enough). Do not "
             "remove anything yet."
         )
     elif change.operation is Operation.DROP_COLUMN:
         steps.append(
-            f"**Announce.** Append a warning to `{change.table}.{change.column}` "
+            f"**Announce.** Append a warning to `{_md_code(change.table)}."
+            f"{_md_code(change.column)}` "
             "in DataHub and save a linked impact analysis "
             "(`blast-radius plan ... --write-back` does this for you)."
         )
     elif change.operation is Operation.RETYPE_COLUMN:
         steps.append(
             f"**Stage.** Land the explicit casts below *before* changing the type "
-            f"of `{change.column}`, so consumers are already type-correct."
+            f"of `{_md_code(change.column)}`, so consumers are already type-correct."
         )
     else:
         steps.append(
-            f"**Confirm retirement.** `{change.table}` is being dropped; every "
+            f"**Confirm retirement.** `{_md_code(change.table)}` is being dropped; every "
             "consumer below needs a new source or an owner sign-off to retire."
         )
 
     if breaking:
-        names = ", ".join(f"`{a.name}`" for a in breaking[:8])
+        names = ", ".join(f"`{_md_code(a.name)}`" for a in breaking[:8])
         more = "" if len(breaking) <= 8 else f" (+{len(breaking) - 8} more)"
         steps.append(
             f"**Migrate the {len(breaking)} breaking consumer"
@@ -96,7 +146,7 @@ def rollout_plan(report: ImpactReport) -> list[str]:
     if change.operation in (Operation.RENAME_COLUMN, Operation.DROP_COLUMN):
         steps.append(
             f"**Contract.** Only now {'drop the old column' if change.operation is Operation.RENAME_COLUMN else 'apply the DROP'}: "
-            f"`{change.source.splitlines()[0][:120]}`"
+            f"`{_md_code(change.source.splitlines()[0][:120])}`"
         )
     return steps
 
@@ -109,21 +159,25 @@ def _asset_table_md(assets: list[ImpactedAsset]) -> str:
         "| --- | --- | --- | --- | --- |",
     ]
     for asset in assets:
-        why = _evidence_line(asset).replace("|", "\\|")
+        why = _evidence_md(asset)
+        asset_type = _md_text(asset.entity_type)
+        platform = f" ({_md_text(asset.platform)})" if asset.platform else ""
         lines.append(
-            f"| `{asset.name}` | {asset.entity_type}"
-            f"{f' ({asset.platform})' if asset.platform else ''} | {asset.hops} | "
-            f"{_owner_names(asset)} | {why} |"
+            f"| `{_md_code(asset.name)}` | {asset_type}{platform} | {asset.hops} | "
+            f"{_md_text(_owner_names(asset))} | {why} |"
         )
     return "\n".join(lines) + "\n"
 
 
 def _patch_md(patch: Patch) -> str:
     flag = "mechanical" if patch.confidence == "mechanical" else "needs review"
-    body = [f"#### {patch.title}", "", f"*{flag}* — {patch.note}", ""]
-    body.append("```diff")
-    body.append(patch.diff.rstrip("\n") or "(no textual diff)")
-    body.append("```")
+    body = [
+        f"#### {_md_text(patch.title)}",
+        "",
+        f"*{flag}* — {_md_text(patch.note)}",
+        "",
+        _fenced_block(patch.diff, "diff"),
+    ]
     return "\n".join(body) + "\n"
 
 
@@ -147,23 +201,23 @@ def to_markdown(report: ImpactReport) -> str:
         headline = "**No downstream impact found.** This change looks safe to land."
 
     out: list[str] = [
-        f"# Blast radius: {change.describe()}",
+        f"# Blast radius: {_md_text(change.describe())}",
         "",
         headline,
         "",
-        f"- **Change**: `{change.describe()}`",
-        f"- **Dataset**: `{report.root_urn or change.table}`",
+        f"- **Change**: `{_md_code(change.describe())}`",
+        f"- **Dataset**: `{_md_code(report.root_urn or change.table)}`",
         f"- **Downstream assets examined**: {len(report.assets)} "
         f"({len(breaking)} breaking, {len(at_risk)} at risk, {len(safe)} safe)",
         f"- **Generated**: {now} by "
         "[blast-radius](https://github.com/bgrubbs1/blast-radius)",
     ]
     if report.datahub_url:
-        out.append(f"- **In DataHub**: {report.datahub_url}")
+        out.append(f"- **In DataHub**: `{_md_code(report.datahub_url)}`")
     out.append("")
 
     if report.summary:
-        out += ["## Summary", "", report.summary.strip(), ""]
+        out += ["## Summary", "", _md_text(report.summary), ""]
 
     out += ["## Breaking", "", _asset_table_md(breaking)]
     out += ["## At risk (unproven — needs a human)", "", _asset_table_md(at_risk)]
@@ -174,9 +228,9 @@ def to_markdown(report: ImpactReport) -> str:
         for owner, assets in notify.items():
             worst = min(assets, key=lambda a: 0 if a.verdict is Verdict.BREAKING else 1)
             label = _VERDICT_LABEL[worst.verdict]
-            names = ", ".join(f"`{a.name}`" for a in assets[:6])
+            names = ", ".join(f"`{_md_code(a.name)}`" for a in assets[:6])
             more = "" if len(assets) <= 6 else f" (+{len(assets) - 6} more)"
-            out.append(f"- **{owner}** — {label}: {names}{more}")
+            out.append(f"- **{_md_text(owner)}** — {label}: {names}{more}")
     else:
         out.append("_no affected assets have owners recorded in DataHub_")
     out.append("")
@@ -223,10 +277,10 @@ def to_markdown(report: ImpactReport) -> str:
         )
     if report.warnings:
         out += ["### Warnings", ""]
-        out += [f"- {w}" for w in dict.fromkeys(report.warnings)]
+        out += [f"- {_md_text(w)}" for w in dict.fromkeys(report.warnings)]
         out.append("")
     out += ["<details><summary>MCP tool calls</summary>", ""]
-    out += ["```", *report.tool_calls, "```", "</details>", ""]
+    out += [_fenced_block("\n".join(report.tool_calls)), "</details>", ""]
     return "\n".join(out)
 
 

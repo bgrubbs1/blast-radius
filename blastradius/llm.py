@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import json
 import os
+from ipaddress import ip_address
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -22,6 +24,7 @@ from .models import ImpactReport, Verdict
 
 DEFAULT_BASE_URL = "http://localhost:1234/v1"
 DEFAULT_MODEL = "local-model"
+ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 
 SYSTEM_PROMPT = """You write short, plain-spoken impact summaries for data engineers \
 reviewing a schema change.
@@ -34,6 +37,31 @@ Rules you must follow:
   question, no closing summary.
 - At most 150 words, prose (no headings, no bullet lists longer than three items).
 """
+
+
+def resolved_endpoint(base_url: str | None = None, provider: str = "openai") -> str:
+    """Return the exact endpoint that would receive the findings payload."""
+
+    if provider == "anthropic":
+        return ANTHROPIC_URL
+    root = (
+        base_url or os.environ.get("BLAST_RADIUS_LLM_BASE_URL") or DEFAULT_BASE_URL
+    ).rstrip("/")
+    return f"{root}/chat/completions"
+
+
+def is_remote_endpoint(base_url: str | None = None, provider: str = "openai") -> bool:
+    """True when the findings payload would leave the local machine."""
+
+    hostname = urlparse(resolved_endpoint(base_url, provider)).hostname
+    if not hostname:
+        return True
+    if hostname.casefold() == "localhost":
+        return False
+    try:
+        return not ip_address(hostname).is_loopback
+    except ValueError:
+        return True
 
 
 def _findings_payload(report: ImpactReport) -> dict[str, Any]:
@@ -87,7 +115,7 @@ def narrate(
             if not key:
                 return "", "no ANTHROPIC_API_KEY set -- skipped the prose summary"
             response = httpx.post(
-                "https://api.anthropic.com/v1/messages",
+                ANTHROPIC_URL,
                 headers={
                     "x-api-key": key,
                     "anthropic-version": "2023-06-01",

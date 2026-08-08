@@ -9,4 +9,5 @@ dist/
 out/
 out-*/
 examples-tmp/
+.private-fixtures/
 .env

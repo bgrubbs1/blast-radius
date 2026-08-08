@@ -38,3 +38,9 @@ through the full pipeline.
 No proprietary or customer data is included. `fixtures/` and `examples/` describe
 a synthetic Snowflake-style warehouse (`analytics.public.fct_orders` and friends)
 created for the demo; the owner names in it are fictional.
+
+The public pull-request workflow uses only those synthetic fixtures and receives
+no DataHub credentials. Live recordings require an explicit private directory,
+remote LLM use requires an explicit egress acknowledgement, and the external MCP
+child receives a minimal environment rather than unrelated shell credentials.
+See `PRIVACY.md` for the complete data-flow boundary.

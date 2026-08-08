@@ -1,8 +1,8 @@
-# Gate a pull request on downstream impact.
+# Public-repository demonstration of the schema guard.
 #
-# Any migration file touched by the PR is analysed against DataHub. If a
-# downstream asset provably breaks, blast-radius exits 2 and the job fails --
-# with the impact report attached as an artifact so the reviewer sees why.
+# This workflow deliberately uses only the bundled synthetic fixtures. Never
+# add work DataHub credentials to a pull_request workflow: the checked-out code
+# and generated reports are visible to repository contributors and readers.
 name: schema-guard
 
 on:
@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   blast-radius:
@@ -26,8 +25,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - uses: astral-sh/setup-uv@v5 # provides uvx for the DataHub MCP server
 
       - name: Install blast-radius
         run: pip install .
@@ -46,9 +43,6 @@ jobs:
 
       - name: Analyse every blast radius
         if: steps.changed.outputs.any == 'true'
-        env:
-          DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
-          DATAHUB_GMS_TOKEN: ${{ secrets.DATAHUB_GMS_TOKEN }}
         run: |
           status=0
           index=0
@@ -66,6 +60,8 @@ jobs:
             set +e
             blast-radius plan \
               --change "$change" \
+              --offline \
+              --fixtures fixtures \
               --depth 3 \
               --out "out/$index" \
               --fail-on breaking
@@ -85,35 +81,6 @@ jobs:
         if: always() && steps.changed.outputs.any == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: blast-radius-report
+          name: blast-radius-synthetic-report
           path: out/
-
-      - name: Comment the reports on the PR
-        if: failure() && steps.changed.outputs.any == 'true' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            const reports = [];
-            function walk(directory) {
-              if (!fs.existsSync(directory)) return;
-              for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-                const candidate = path.join(directory, entry.name);
-                if (entry.isDirectory()) walk(candidate);
-                if (entry.isFile() && entry.name === 'impact-report.md') reports.push(candidate);
-              }
-            }
-            walk('out');
-            if (!reports.length) return;
-            const body = reports
-              .sort()
-              .map(report => fs.readFileSync(report, 'utf8'))
-              .join('\n\n---\n\n')
-              .slice(0, 65000);
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body,
-            });
+          retention-days: 1

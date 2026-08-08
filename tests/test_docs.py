@@ -12,6 +12,8 @@ def test_readme_matches_the_canonical_demo_and_public_media():
     assert "https://youtu.be/RT65Dc0qxLA" in readme
     assert "docs/gallery/1-verdicts.jpg" in readme
     assert "pip install blast-radius" not in readme
+    assert "PRIVACY.md" in readme
+    assert "--allow-remote-llm" in readme
 
 
 def test_submission_packet_records_the_live_submission_state():

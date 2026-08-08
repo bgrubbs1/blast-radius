@@ -36,6 +36,60 @@ from typing import Any
 DEFAULT_GMS_URL = "http://localhost:8080"
 MCP_PACKAGE = "mcp-server-datahub@0.6.0"
 
+# The MCP server needs a normal process-launch environment, but it must not
+# inherit every unrelated credential from the parent shell. Keep this list
+# intentionally small and add variables only when the child demonstrably needs
+# them on a supported platform.
+_MCP_ENV_ALLOWLIST = {
+    "ALL_PROXY",
+    "APPDATA",
+    "COMSPEC",
+    "CURL_CA_BUNDLE",
+    "HOME",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "LANG",
+    "LC_ALL",
+    "LOCALAPPDATA",
+    "NO_PROXY",
+    "PATH",
+    "PATHEXT",
+    "PROGRAMDATA",
+    "PYTHONIOENCODING",
+    "PYTHONUTF8",
+    "REQUESTS_CA_BUNDLE",
+    "SSL_CERT_DIR",
+    "SSL_CERT_FILE",
+    "SYSTEMROOT",
+    "TEMP",
+    "TERM",
+    "TMP",
+    "TMPDIR",
+    "USERPROFILE",
+    "WINDIR",
+    "XDG_CACHE_HOME",
+}
+
+
+def _mcp_child_env(
+    gms_url: str,
+    token: str = "",
+    mutations: bool = False,
+) -> dict[str, str]:
+    """Return the minimal environment passed to the external MCP process."""
+
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key.upper() in _MCP_ENV_ALLOWLIST
+    }
+    env["DATAHUB_GMS_URL"] = gms_url
+    if token:
+        env["DATAHUB_GMS_TOKEN"] = token
+    if mutations:
+        env["TOOLS_IS_MUTATION_ENABLED"] = "true"
+    return env
+
 # Logical call -> candidate parameter names, most likely first.
 _ARG_ALIASES: dict[str, tuple[str, ...]] = {
     "query": ("query", "keywords", "q", "search_query"),
@@ -105,12 +159,7 @@ class DataHubMCP:
         except ImportError as exc:  # pragma: no cover - dependency is declared
             raise DataHubError(f"the 'mcp' package is required: {exc}") from exc
 
-        env = dict(os.environ)
-        env["DATAHUB_GMS_URL"] = self.gms_url
-        if self.token:
-            env["DATAHUB_GMS_TOKEN"] = self.token
-        if self.mutations:
-            env["TOOLS_IS_MUTATION_ENABLED"] = "true"
+        env = _mcp_child_env(self.gms_url, self.token, self.mutations)
 
         params = StdioServerParameters(
             command=os.environ.get("BLAST_RADIUS_MCP_COMMAND", "uvx"),

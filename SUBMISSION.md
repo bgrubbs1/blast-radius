@@ -77,8 +77,11 @@ the autonomy is in gathering and acting on catalog context.
    changed column's description and a linked analysis document, so the next
    person or agent inherits the result.
 
-`--fail-on breaking` exits non-zero, so a pull request can be gated on it. A
-ready GitHub Action is included that comments the report on the PR.
+`--fail-on breaking` exits non-zero, so a pull request can be gated on it. The
+included public-repository GitHub Action deliberately uses only the bundled
+synthetic fixtures and receives no DataHub credentials. Live catalog analysis
+belongs in a private repository with protected trusted-code execution and
+private detailed reports.
 
 ### How DataHub is used
 
@@ -132,6 +135,10 @@ DataHub by `scripts/seed_datahub.py` (5 datasets, lineage, ownership, domains,
 and Query entities carrying the SQL). No proprietary or customer data. Owner
 names are fictional.
 
+`PRIVACY.md` documents the live data flow. Raw recording requires an explicit
+private directory, non-local LLM use requires an explicit egress acknowledgement,
+and the MCP child does not inherit unrelated parent-shell credentials.
+
 ## Sample outputs (recommended by the rules)
 
 `examples/` in the repo:
@@ -150,10 +157,10 @@ names are fictional.
 git clone https://github.com/bgrubbs1/blast-radius && cd blast-radius
 pip install -e ".[dev]"
 blast-radius demo --out out/     # replays MCP responses recorded from a real DataHub
-pytest -q                        # 57 passed
+pytest -q                        # 68 passed
 ```
 
-Against your own DataHub:
+Against an authorized DataHub from a private, access-controlled checkout:
 
 ```bash
 export DATAHUB_GMS_URL=http://localhost:8080
