@@ -179,6 +179,8 @@ verification. It is not claimed.
 - [x] Verified end-to-end against DataHub Core 1.7.0, not only fixtures
 - [x] `examples/` regenerated after `357962b` so recorded tool calls show the
       corrected arguments (`filter`, `limit`, `count`)
-- [ ] **Confirm the GitHub repo is actually public** before judges click the link
+- [x] GitHub repository verified public; GitHub detects the Apache-2.0 license
+- [ ] **Push the local submission-ready commits to `origin/main`** so judges see
+      the corrected examples, recaptured demo, gallery, and README
 - [ ] **Demo video uploaded to YouTube as public** and the link pasted in the form
 - [ ] Form submitted before Aug 10, 5:00 PM EDT
