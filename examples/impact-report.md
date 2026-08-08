@@ -5,7 +5,7 @@
 - **Change**: `DROP COLUMN analytics.public.fct_orders.discount_amount`
 - **Dataset**: `urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)`
 - **Downstream assets examined**: 5 (2 breaking, 2 at risk, 1 safe)
-- **Generated**: 2026-08-07 14:08 UTC by [blast-radius](https://github.com/bgrubbs1/blast-radius)
+- **Generated**: 2026-08-08 00:37 UTC by [blast-radius](https://github.com/bgrubbs1/blast-radius)
 
 ## Breaking
 
@@ -112,16 +112,16 @@ Every verdict above comes from DataHub metadata read over MCP (11 tool calls). A
 <details><summary>MCP tool calls</summary>
 
 ```
-[replay] search(query='/q analytics+public+fct+orders', num_results=25, filters='entity_type = dataset')
+[replay] search(query='/q analytics+public+fct+orders', num_results=25, filter='entity_type = dataset')
 [replay] get_lineage(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)', upstream=False, max_hops=2, column=None)
 [replay] get_entities(urns=['urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.public.fct_orders,PROD)', 'urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)', 'urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)', 'urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)', 'urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)', 'urn:li:dashboard:(looker,finance_exec_overview)'])
-[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)')
-[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)')
-[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)')
-[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)')
-[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)')
-[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)')
-[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)')
-[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)')
+[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)', limit=200)
+[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.dim_customer_ltv,PROD)', count=25)
+[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)', limit=200)
+[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.mart_orders_flat,PROD)', count=25)
+[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)', limit=200)
+[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.rpt_daily_revenue,PROD)', count=25)
+[replay] list_schema_fields(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)', limit=200)
+[replay] get_dataset_queries(urn='urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.staging.stg_orders_audit,PROD)', count=25)
 ```
 </details>

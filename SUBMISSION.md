@@ -87,12 +87,25 @@ every claim cites its evidence. An LLM is used for exactly one thing, only with
 forbidden from re-ranking severity. The tool needs no API key and no cloud —
 point `--llm-base-url` at LM Studio if you want the paragraph.
 
-**It was built against a real DataHub and adapted to what the server actually
-does.** The MCP server advertises an empty `inputSchema`, so argument names
-cannot be introspected: the client sends documented names, and when the server
-rejects one it parses the rejected parameter out of the error and retries without
-it. That is not hypothetical — `search` rejects `filters`, and the recorded run
-in `examples/impact-report.md` shows the retry and the completed analysis.
+**It was built against a real DataHub, and the hard part was checking our own
+work.** Mid-build the client began silently dropping arguments: entity-type
+filtering on `search` was applying to nothing, and `--query-limit` was ignored on
+every run. The obvious conclusion was that the MCP server published incomplete
+tool schemas, and this project was one commit away from filing that upstream.
+
+That claim was checked at the wire level with raw JSON-RPC first. **The server
+was innocent.** It sends complete schemas for every tool — this client read
+`inputSchema`, while `mcp` 2.0 exposes it as `input_schema`. Seeing nothing, the
+retry logic had started guessing parameter names, sent `filters` where the tool
+takes `filter`, had the argument rejected, dropped it, and still got results back
+— so nothing ever looked broken.
+
+Fixed in `357962b`, re-verified against DataHub Core with the fixtures
+re-recorded, and `examples/` regenerated so the recorded tool calls show the
+correct arguments. The lesson is the one the tool itself is built on: an unproven
+claim is not a safe claim, whether it is about a downstream dashboard or about
+someone else's server.
+
 Lineage payloads also carry owners, domains and platforms; those are filtered out
 so corpusers are never reported as impacted assets.
 
@@ -141,14 +154,20 @@ blast-radius plan --change "ALTER TABLE db.orders DROP COLUMN discount_amount" -
 
 ## Open-source contribution (bonus criterion)
 
-Findings worth filing upstream from building this, if time allows before the
-deadline:
+**No upstream issue was filed, and the reason is the honest one.** Two findings
+against `mcp-server-datahub` were drafted and then withdrawn:
 
-1. `mcp-server-datahub` advertises an empty `inputSchema` for every tool, so MCP
-   clients cannot introspect arguments and must guess. Reporting this with the
-   observed tool list is a concrete, reproducible issue.
-2. Pydantic argument-validation failures are returned as ordinary text content
-   with `isError` unset, so well-behaved clients treat a rejection as data.
+1. *"The server advertises an empty `inputSchema` for every tool."* — **False.**
+   Verified at the wire level with raw JSON-RPC: the server sends complete
+   schemas. The defect was in this client reading `inputSchema` instead of
+   `input_schema`. Fixed here in `357962b`; nothing to report upstream.
+2. *"Pydantic argument-validation failures come back as ordinary text content
+   with `isError` unset."* — **Unverified.** This was observed while the client
+   was sending wrong argument names, so the premise is contaminated. It has not
+   been re-tested against correct arguments and must not be filed as-is.
+
+Claiming this bonus would mean publishing a bug report that did not survive
+verification. It is not claimed.
 
 ## Pre-submission checklist
 
@@ -158,5 +177,8 @@ deadline:
 - [x] Newly created during the submission period (see `DISCLOSURES.md`)
 - [x] Sample outputs in `examples/`
 - [x] Verified end-to-end against DataHub Core 1.7.0, not only fixtures
+- [x] `examples/` regenerated after `357962b` so recorded tool calls show the
+      corrected arguments (`filter`, `limit`, `count`)
+- [ ] **Confirm the GitHub repo is actually public** before judges click the link
 - [ ] **Demo video uploaded to YouTube as public** and the link pasted in the form
 - [ ] Form submitted before Aug 10, 5:00 PM EDT
